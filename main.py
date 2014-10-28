@@ -10,15 +10,16 @@ from reconstruction_tract import tractography_rec, save_trk, save_dpy
 from preprocessing import preprocess
 import os
 
-
 ##Preprocessing
-print "Setting preprocessing variables"
+print "Setting preprocessing variables. 
+## Unless you want to change the name of the resulting files, you don't have to change any of the defined variables, except for dir_DICOM_data 
+## and main_data_directory, which are the main directories containing the data and where the results will be saved, respectively."
 
 ##Directory of DICOM files
 dir_DICOM_data = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject2_MT/DTI_DICOM'
 
 ##Setting directories for Outputs and Inputs of the rest of the methods
-##General directory here data resides
+##General directory where data resides and where to save the results
 main_data_directory = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject2_MT/'
 
 ##General directory to save all
