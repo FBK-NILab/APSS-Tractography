@@ -27,5 +27,6 @@ run main.py
 The current main.py file contains the definition of all input and output filepaths for the different steps. It also contains some of the default values for the options of the different processing methods. If the user want to change any of these, she just has to change them on the main. The only two variables that need to be changed before running the main.py on your PC are:
 
 dir_DICOM_data: Local directory where dicom files are.
+
 main_data_directory: Local directory where all the results should be saved. Moreover, this is the folder where the .nii, .bval and .bvec files are localized, in case the .dcm to .nii conversion has already been done.
 
