@@ -12,7 +12,7 @@ import os
 
 ##Preprocessing
 print "Setting preprocessing variables. 
-## Unless you want to change the name of the resulting files, you don't have to change any of the defined variables, except for dir_DICOM_data 
+## Unless the user wants a different name for the resulting files, none of the values for the defined variables have to change, except for dir_DICOM_data 
 ## and main_data_directory, which are the main directories containing the data and where the results will be saved, respectively."
 
 ##Directory of DICOM files
