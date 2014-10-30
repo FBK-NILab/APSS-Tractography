@@ -50,7 +50,7 @@ def preprocess (dicom_directory=None, niftii_output_dir = None, filename_bet = N
         
         data, affine=resample(old_data,old_affine,zooms,new_zooms)
     
-    #Save new data
-    print "Saving Data after resapling:", output_file_resize
-    data_img = nib.Nifti1Image(data=data, affine=affine)
-    nib.save(data_img, output_file_resize)
+        #Save new data
+        print "Saving Data after resapling:", output_file_resize
+        data_img = nib.Nifti1Image(data=data, affine=affine)
+        nib.save(data_img, output_file_resize)

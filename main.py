@@ -10,17 +10,20 @@ from reconstruction_tract import tractography_rec, save_trk, save_dpy
 from preprocessing import preprocess
 import os
 
+
+
 ##Preprocessing
-print "Setting preprocessing variables. 
+print "Setting preprocessing variables."
 ## Unless the user wants a different name for the resulting files, none of the values for the defined variables have to change, except for dir_DICOM_data 
-## and main_data_directory, which are the main directories containing the data and where the results will be saved, respectively."
+## and main_data_directory, which are the main directories containing the data and where the results will be saved, respectively.
 
 ##Directory of DICOM files
-dir_DICOM_data = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject2_MT/DTI_DICOM'
+dir_DICOM_diffusion = './Subject/DTI_DICOM'
+dir_DICOM_T1 = './Subject/T1_DICOM'
 
 ##Setting directories for Outputs and Inputs of the rest of the methods
 ##General directory where data resides and where to save the results
-main_data_directory = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject2_MT/'
+main_data_directory = './Subject/'
 
 ##General directory to save all
 dirname = main_data_directory + 'DTI_nilab/'
@@ -31,30 +34,53 @@ if not os.path.exists(dirname):
 niftii_dirname = dirname + 'Niftii/'
 if not os.path.exists(niftii_dirname):
     os.makedirs(niftii_dirname)
-
+    
+niftii_diffusion_dirname = niftii_dirname + 'diffusion/'
+if not os.path.exists(niftii_diffusion_dirname):
+    os.makedirs(niftii_diffusion_dirname)
+    
+niftii__t1_dirname = niftii_dirname + 'structural/'
+if not os.path.exists(niftii__t1_dirname):
+    os.makedirs(niftii__t1_dirname)
+    
 ##Creating directory and filepaths for preprocessed data
 ##Directory to save preprocessed data
-prepro_dirname = dirname + 'Preprocessed/'
-if not os.path.exists(prepro_dirname):
-    os.makedirs(prepro_dirname)
-
-##Variables for bet
+prepro_t1_dirname = niftii__t1_dirname + 'Preprocessed/'
+if not os.path.exists(prepro_t1_dirname):
+    os.makedirs(prepro_t1_dirname)
+    
+##Variables for bet T1
 #bet_file = None
-bet_file_savepath = prepro_dirname + 'data_bet.nii.gz'
+bet_t1_file_savepath = prepro_t1_dirname + 'T1_bet.nii.gz'
+bet_t1_options = ' -R -m -f .5 -g 0' 
+
+## Calling preprocessing function for T1 image
+preprocess(dicom_directory=dir_DICOM_T1, niftii_output_dir = niftii__t1_dirname, output_file_bet = bet_t1_file_savepath,  bet_options = bet_t1_options)
+
+
+## From this point, the steps are only related to the diffusion data
+
+##Variables for bet on diffusion data
+prepro_dif_dirname = niftii_diffusion_dirname + 'Preprocessed/'
+if not os.path.exists(prepro_dif_dirname):
+    os.makedirs(prepro_dif_dirname)
+
+#bet_file = None
+bet_diffusion_file_savepath = prepro_dif_dirname + 'data_bet.nii.gz'
 # bet_options = ' -R -F -f .2 -g 0' (default)  "Activate if you want to change"
 
 ##Variables for eddy current correction
-eddy_file = bet_file_savepath
-eddy_file_savepath = prepro_dirname + 'data_ecc.nii.gz'
+eddy_file = bet_diffusion_file_savepath
+eddy_file_savepath = prepro_dif_dirname + 'data_ecc.nii.gz'
 
 ##Variables for voxel resizing
 #voxel_size = [2., 2., 2.] (default)  "Activate if you want to change"
 file_to_resize = eddy_file_savepath
-resized_file_savepath = prepro_dirname + 'data_isotropic_voxels.nii' 
+resized_file_savepath = prepro_dif_dirname + 'data_isotropic_voxels.nii' 
 
 
 ##Calling preprocessing function. In this version we are doing all preprocessing steps. If you want to skip any, don't specify the needed parameters.
-preprocess(dicom_directory=dir_DICOM_data, niftii_output_dir = niftii_dirname, output_file_bet = bet_file_savepath, 
+preprocess(dicom_directory=dir_DICOM_diffusion, niftii_output_dir = niftii_diffusion_dirname, output_file_bet = bet_diffusion_file_savepath, 
            filename_eddy = eddy_file, output_file_eddy = eddy_file_savepath, file_resizing = file_to_resize, output_file_resize = resized_file_savepath)
 
 
@@ -62,8 +88,8 @@ preprocess(dicom_directory=dir_DICOM_data, niftii_output_dir = niftii_dirname, o
 print "Setting reconstruction variables"
 
 nii_filename = resized_file_savepath
-bval_filename = niftii_dirname +  [each for each in os.listdir(niftii_dirname) if each.endswith('.bval')][0]
-bvec_filename = niftii_dirname +  [each for each in os.listdir(niftii_dirname) if each.endswith('.bvec')][0]
+bval_filename = niftii_diffusion_dirname +  [each for each in os.listdir(niftii_diffusion_dirname) if each.endswith('.bval')][0]
+bvec_filename = niftii_diffusion_dirname +  [each for each in os.listdir(niftii_diffusion_dirname) if each.endswith('.bvec')][0]
 
 print "Loading data"
 img = nib.load(nii_filename)
