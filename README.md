@@ -3,9 +3,10 @@ APSS-Tractography
 
 Pipeline for processing diffusion MRI and recostruncting deterministic tractography according to the requirement of the Neurosurgery Department of APSS Trentino. At this moment the pipeline includes the following steps:
 
-1. Creating .nii, .bval and .bvec files from .dcm files
+1. Creating .nii file from .dcm files for T1.
+2. Creating .nii,.bval and .bvec files from .dcm files for the diffusion data.
 2. Preprocessing:
- 2.1. Brain Extraction
+ 2.1. Brain Extraction (both for T1 and diffusion images)
  2.2. Eddy current correction
 3. Deterministic tractography reconstruction
 
@@ -15,6 +16,8 @@ Dependencies
 
 * NiBabel : http://nipy.org/nibabel , provides read and write access to common medical and neuroimaging file formats.
 * Dipy: http://www.dipy.org , provides tools for dMRI data analysis.
+* mricron: http://www.nitrc.org/projects/mricron, Toolbox for magnetic resonance image conversion, viewing and       analysis.
+* FSL: http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/, provides tools for analysis of FMRI, MRI and DTI brain imaging data.
 
 
 To Run the Pipeline
