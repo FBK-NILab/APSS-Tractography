@@ -9,21 +9,19 @@ import nibabel as nib
 from reconstruction_tract import tractography_rec, save_trk, save_dpy
 from preprocessing import preprocess
 import os
-import pdb
-
 
 ##Preprocessing
 print "Setting preprocessing variables."
 ## Unless the user wants a different name for the resulting files, none of the values for the defined variables have to change, except for dir_DICOM_data 
 ## and main_data_directory, which are the main directories containing the data and where the results will be saved, respectively.
-pdb.set_trace()
+
 ##Directory of DICOM files
-dir_DICOM_diffusion = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject1_ML/DTI_DICOM'
-dir_DICOM_T1 = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject1_ML/T1_DICOM'
+dir_DICOM_diffusion = './Subject/DTI_DICOM'
+dir_DICOM_T1 = './Subject/T1_DICOM'
 
 ##Setting directories for Outputs and Inputs of the rest of the methods
 ##General directory where data resides and where to save the results
-main_data_directory = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject1_ML'
+main_data_directory = './Subject/'
 
 ##Creating directory to save Niftii generated data
 niftii_dirname = os.path.join(main_data_directory, 'Niftii')  
