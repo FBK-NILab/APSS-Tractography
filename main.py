@@ -9,74 +9,71 @@ import nibabel as nib
 from reconstruction_tract import tractography_rec, save_trk, save_dpy
 from preprocessing import preprocess
 import os
-
+import pdb
 
 
 ##Preprocessing
 print "Setting preprocessing variables."
 ## Unless the user wants a different name for the resulting files, none of the values for the defined variables have to change, except for dir_DICOM_data 
 ## and main_data_directory, which are the main directories containing the data and where the results will be saved, respectively.
-
+pdb.set_trace()
 ##Directory of DICOM files
-dir_DICOM_diffusion = './Subject/DTI_DICOM'
-dir_DICOM_T1 = './Subject/T1_DICOM'
+dir_DICOM_diffusion = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject1_ML/DTI_DICOM'
+dir_DICOM_T1 = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject1_ML/T1_DICOM'
 
 ##Setting directories for Outputs and Inputs of the rest of the methods
 ##General directory where data resides and where to save the results
-main_data_directory = './Subject/'
-
-##General directory to save all
-dirname = main_data_directory + 'DTI_nilab/'
-if not os.path.exists(dirname):
-    os.makedirs(dirname)
+main_data_directory = '/home/tractome/meeting_Sarubbo/DTI_Sarubbo/Subject1_ML'
 
 ##Creating directory to save Niftii generated data
-niftii_dirname = dirname + 'Niftii/'
+niftii_dirname = os.path.join(main_data_directory, 'Niftii')  
 if not os.path.exists(niftii_dirname):
     os.makedirs(niftii_dirname)
     
-niftii_diffusion_dirname = niftii_dirname + 'diffusion/'
+niftii_diffusion_dirname = os.path.join(niftii_dirname, 'Diffusion/')  
 if not os.path.exists(niftii_diffusion_dirname):
     os.makedirs(niftii_diffusion_dirname)
     
-niftii__t1_dirname = niftii_dirname + 'structural/'
-if not os.path.exists(niftii__t1_dirname):
-    os.makedirs(niftii__t1_dirname)
+niftii_t1_dirname = os.path.join(niftii_dirname, 'Structural/')
+if not os.path.exists(niftii_t1_dirname):
+    os.makedirs(niftii_t1_dirname)
     
 ##Creating directory and filepaths for preprocessed data
 ##Directory to save preprocessed data
-prepro_t1_dirname = niftii__t1_dirname + 'Preprocessed/'
+prepro_t1_dirname = os.path.join(niftii_t1_dirname,'Preprocess/')
 if not os.path.exists(prepro_t1_dirname):
     os.makedirs(prepro_t1_dirname)
     
 ##Variables for bet T1
 #bet_file = None
-bet_t1_file_savepath = prepro_t1_dirname + 'T1_bet.nii.gz'
-bet_t1_options = ' -R -m -f .5 -g 0' 
+bet_t1_file_savepath = os.path.join(prepro_t1_dirname,'T1_bet.nii.gz')
+bet_t1_options = ' -R -m -f .5 -g 0'
 
 ## Calling preprocessing function for T1 image
-preprocess(dicom_directory=dir_DICOM_T1, niftii_output_dir = niftii__t1_dirname, output_file_bet = bet_t1_file_savepath,  bet_options = bet_t1_options)
+preprocess(dicom_directory=dir_DICOM_T1, niftii_output_dir = niftii_t1_dirname, output_file_bet = bet_t1_file_savepath,  bet_options = bet_t1_options)
 
+### Moving T1_bet to Structural main directory
+os.rename(bet_t1_file_savepath, os.path.join(niftii_t1_dirname,'T1_bet.nii.gz'))
 
 ## From this point, the steps are only related to the diffusion data
 
 ##Variables for bet on diffusion data
-prepro_dif_dirname = niftii_diffusion_dirname + 'Preprocessed/'
+prepro_dif_dirname = os.path.join(niftii_diffusion_dirname,'Preprocess/')
 if not os.path.exists(prepro_dif_dirname):
     os.makedirs(prepro_dif_dirname)
 
 #bet_file = None
-bet_diffusion_file_savepath = prepro_dif_dirname + 'data_bet.nii.gz'
+bet_diffusion_file_savepath = os.path.join(prepro_dif_dirname,'data_bet.nii.gz')
 # bet_options = ' -R -F -f .2 -g 0' (default)  "Activate if you want to change"
 
 ##Variables for eddy current correction
 eddy_file = bet_diffusion_file_savepath
-eddy_file_savepath = prepro_dif_dirname + 'data_ecc.nii.gz'
+eddy_file_savepath = os.path.join(prepro_dif_dirname,'data_ecc.nii.gz')
 
 ##Variables for voxel resizing
 #voxel_size = [2., 2., 2.] (default)  "Activate if you want to change"
 file_to_resize = eddy_file_savepath
-resized_file_savepath = prepro_dif_dirname + 'data_isotropic_voxels.nii' 
+resized_file_savepath = os.path.join(niftii_diffusion_dirname,'data_isotropic_voxels.nii') 
 
 
 ##Calling preprocessing function. In this version we are doing all preprocessing steps. If you want to skip any, don't specify the needed parameters.
@@ -84,7 +81,7 @@ preprocess(dicom_directory=dir_DICOM_diffusion, niftii_output_dir = niftii_diffu
            filename_eddy = eddy_file, output_file_eddy = eddy_file_savepath, file_resizing = file_to_resize, output_file_resize = resized_file_savepath)
 
 
-##Tractography reconstruction with dipy 
+#Tractography reconstruction with dipy 
 print "Setting reconstruction variables"
 
 nii_filename = resized_file_savepath
@@ -107,20 +104,20 @@ print "Saving data"
 voxel_size = img.get_header().get_zooms()[:3]
 dims = FA.shape[:3]
 
-dti_directory = dirname + 'DTI/'
+dti_directory = os.path.join(main_data_directory,'TRK/Tractography/')
 if not os.path.exists(dti_directory):
     os.makedirs(dti_directory)
 
-save_filename_trk = dti_directory + 'dti_%s.trk' % seed
+save_filename_trk = os.path.join(dti_directory,'tome_%s.trk') % seed
 save_trk(streamlines, voxel_size, dims, save_filename_trk) 
 
-save_filename_dpy = dti_directory + 'dti_%s.dpy' % seed
+save_filename_dpy = os.path.join(dti_directory,'tome_%s.dpy') % seed
 save_dpy(streamlines, save_filename_dpy)
 
 print "Save FA"
-mapfile = dti_directory+'FA_map.nii.gz'
+mapfile = os.path.join(niftii_diffusion_dirname,'FA_map.nii.gz')
 nib.save(nib.Nifti1Image(FA.astype(np.float32), img.get_affine()), mapfile)
 
 print "Save Color FA"
-cfa_file = dti_directory+'Color_FA_map.nii.gz'
+cfa_file = os.path.join(niftii_diffusion_dirname,'Color_FA_map.nii.gz')
 nib.save(nib.Nifti1Image(np.array(255*CFA,'uint8'), img.get_affine()), cfa_file)
