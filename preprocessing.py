@@ -3,7 +3,6 @@ from dipy.external.fsl import bet, eddy_correct, dcm2nii
 from dipy.align.aniso2iso import resample
 import os
 
-
 def preprocess (dicom_directory=None, niftii_output_dir = None, filename_bet = None, output_file_bet = None, bet_options = None,
                    filename_eddy = None, output_file_eddy = None, new_voxel_size = None, file_resizing = None, output_file_resize = None):
 
@@ -52,5 +51,5 @@ def preprocess (dicom_directory=None, niftii_output_dir = None, filename_bet = N
     
         #Save new data
         print "Saving Data after resapling:", output_file_resize
-        data_img = nib.Nifti1Image(data=data, affine=affine)
+        data_img = nib.Nifti1Image(data, affine)
         nib.save(data_img, output_file_resize)
