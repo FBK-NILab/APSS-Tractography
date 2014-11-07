@@ -8,7 +8,9 @@ Pipeline for processing diffusion MRI and recostruncting deterministic tractogra
 2. Preprocessing:
  2.1. Brain Extraction (both for T1 and diffusion images)
  2.2. Eddy current correction
-3. Deterministic tractography reconstruction
+ 2.3. Resampling to isotropic voxel size for diffusion data.
+ 2.4. Registration of T1 on diffusion data
+4. Deterministic tractography reconstruction
 
 
 Dependencies
