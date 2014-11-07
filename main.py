@@ -7,7 +7,7 @@ Created on Fri Oct 24 07:23:36 2014
 import numpy as np
 import nibabel as nib
 from reconstruction_tract import tractography_rec, save_trk, save_dpy
-from preprocessing import preprocess
+from preprocessing import preprocess,t1_flirt
 import os
 
 ##Preprocessing
@@ -15,15 +15,15 @@ print "Setting preprocessing variables."
 ## Unless the user wants a different name for the resulting files, none of the values for the defined variables have to change, except for dir_DICOM_data 
 ## and main_data_directory, which are the main directories containing the data and where the results will be saved, respectively.
 
-##Directory of DICOM files
+## Directory of DICOM files
 dir_DICOM_diffusion = './Subject/DTI_DICOM'
 dir_DICOM_T1 = './Subject/T1_DICOM'
 
-##Setting directories for Outputs and Inputs of the rest of the methods
-##General directory where data resides and where to save the results
+## Setting directories for Outputs and Inputs of the rest of the methods
+## General directory where data resides and where to save the results
 main_data_directory = './Subject/'
 
-##Creating directory to save Niftii generated data
+## Creating directory to save Niftii generated data
 niftii_dirname = os.path.join(main_data_directory, 'Niftii')  
 if not os.path.exists(niftii_dirname):
     os.makedirs(niftii_dirname)
@@ -36,13 +36,13 @@ niftii_t1_dirname = os.path.join(niftii_dirname, 'Structural/')
 if not os.path.exists(niftii_t1_dirname):
     os.makedirs(niftii_t1_dirname)
     
-##Creating directory and filepaths for preprocessed data
-##Directory to save preprocessed data
+## Creating directory and filepaths for preprocessed data
+## Directory to save preprocessed data
 prepro_t1_dirname = os.path.join(niftii_t1_dirname,'Preprocess/')
 if not os.path.exists(prepro_t1_dirname):
     os.makedirs(prepro_t1_dirname)
     
-##Variables for bet T1
+## Variables for bet T1
 #bet_file = None
 bet_t1_file_savepath = os.path.join(prepro_t1_dirname,'T1_bet.nii.gz')
 bet_t1_options = ' -R -m -f .5 -g 0'
@@ -50,12 +50,11 @@ bet_t1_options = ' -R -m -f .5 -g 0'
 ## Calling preprocessing function for T1 image
 preprocess(dicom_directory=dir_DICOM_T1, niftii_output_dir = niftii_t1_dirname, output_file_bet = bet_t1_file_savepath,  bet_options = bet_t1_options)
 
-### Moving T1_bet to Structural main directory
-os.rename(bet_t1_file_savepath, os.path.join(niftii_t1_dirname,'T1_bet.nii.gz'))
 
-## From this point, the steps are only related to the diffusion data
 
-##Variables for bet on diffusion data
+## Preprocessing of diffusion data
+
+## Variables for bet on diffusion data
 prepro_dif_dirname = os.path.join(niftii_diffusion_dirname,'Preprocess/')
 if not os.path.exists(prepro_dif_dirname):
     os.makedirs(prepro_dif_dirname)
@@ -79,7 +78,15 @@ preprocess(dicom_directory=dir_DICOM_diffusion, niftii_output_dir = niftii_diffu
            filename_eddy = eddy_file, output_file_eddy = eddy_file_savepath, file_resizing = file_to_resize, output_file_resize = resized_file_savepath)
 
 
-#Tractography reconstruction with dipy 
+# Registering T1 after diffusion data
+print "T1 registration"
+t1_flirt_path = os.path.join(niftii_t1_dirname,'T1_flirt.nii.gz')
+transf_matrix_path = os.path.join(prepro_t1_dirname,'T1_flirt.mat')
+dof_value = 6
+
+t1_flirt(bet_t1_file_savepath,resized_file_savepath,t1_flirt_path,transf_matrix_path,dof_value)
+
+## Tractography reconstruction with dipy 
 print "Setting reconstruction variables"
 
 nii_filename = resized_file_savepath

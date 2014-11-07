@@ -1,5 +1,5 @@
 import nibabel as nib
-from dipy.external.fsl import bet, eddy_correct, dcm2nii
+from dipy.external.fsl import bet, eddy_correct, dcm2nii, pipe
 from dipy.align.aniso2iso import resample
 import os
 
@@ -53,3 +53,7 @@ def preprocess (dicom_directory=None, niftii_output_dir = None, filename_bet = N
         print "Saving Data after resapling:", output_file_resize
         data_img = nib.Nifti1Image(data, affine)
         nib.save(data_img, output_file_resize)
+
+def t1_flirt(in_path,ref_path,out_path,transf_mat_path,dof_value):
+    
+    pipe('flirt -in ' +in_path+' -ref '+ref_path+' -out '+out_path+' -omat '+transf_mat_path+' -dof '+str(dof_value))
