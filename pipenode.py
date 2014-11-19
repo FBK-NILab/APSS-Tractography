@@ -9,6 +9,7 @@ Distributed under the BSD 3-clause license. See COPYING.txt.
 """
 
 import os
+import sys
 import glob
 import pickle
 import numpy as np
@@ -27,7 +28,7 @@ from parameters import *
 
 
 def dcm2nii(dname, outdir, filt='*.dcm', options='-d n -g n -i n -o'):
-    cmd = 'dcm2nii ' + options + ' ' + outdir + ' ' + dname + '/' + filt
+    cmd = 'dcm2nii ' + options + ' ' + outdir + ' ' + dname
     pipe(cmd, print_sto=False, print_ste=False)
 
 
@@ -43,59 +44,62 @@ def bet(in_nii, out_nii, options=' -F -f .2 -g 0'):
 
 def dicom_to_nifti(src_dir, out_dir, subj_name, tag, opt=par_dcm2nii_options):
 
+    if src_dir is not None and out_dir is not None:
+        old_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
+        if os.path.exists(old_file): os.remove(old_file)
+        old_file = os.path.join(out_dir, subj_name + '.bval')
+        if os.path.exists(old_file): os.remove(old_file)
+        old_file = os.path.join(out_dir, subj_name + '.bvec')
+        if os.path.exists(old_file): os.remove(old_file)
+
     try:
-        if src_dir is not None and out_dir is not None:
-            old_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
-            if os.path.exists(old_file): os.remove(old_file)
-            old_file = os.path.join(out_dir, subj_name + '.bval')
-            if os.path.exists(old_file): os.remove(old_file)
-            old_file = os.path.join(out_dir, subj_name + '.bvec')
-            if os.path.exists(old_file): os.remove(old_file)
-            dcm2nii(src_dir, out_dir, filt='', options = opt)
-            all_file = glob.glob(os.path.join(out_dir, '*.nii'))
-            new_file = min(all_file, key = os.path.getctime)
-            del_file = os.path.basename(new_file)
-            del_file = del_file.strip('co, o, .nii, .bval, .bvec')
-            if tag == 'mri':
-                old_file = os.path.join(out_dir, 'co' + del_file + '.nii')
-                out_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
-                if os.path.exists(old_file):               
-                    os.rename(old_file, out_file)        
-                old_file = os.path.join(out_dir, 'o' + del_file + '.nii')
-                if os.path.exists(old_file): os.remove(old_file)
-                old_file = os.path.join(out_dir, del_file + '.nii')
-                if os.path.exists(old_file): os.remove(old_file)
-            if tag == 'dmri':
-                old_file = os.path.join(out_dir, del_file + '.nii')
-                out_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
-                if os.path.exists(old_file):               
-                    os.rename(old_file, out_file)
-                old_file = os.path.join(out_dir, del_file + '.bval')
-                out_file = os.path.join(out_dir, subj_name + '.bval')
-                if os.path.exists(old_file):               
-                    os.rename(old_file, out_file)
-                old_file = os.path.join(out_dir, del_file + '.bvec')
-                out_file = os.path.join(out_dir, subj_name + '.bvec')
-                if os.path.exists(old_file):               
-                    os.rename(old_file, out_file)
-
-    except:
-        print "FAIL: dcm2nii - File: %s" % src_dir
-        exit
+        glob.glob(os.path.join(src_dir, '*.dcm'))[0]
+        
+    except IndexError:
+        print "FAIL: dcm2nii - FILE: *.dcm not found"
+        sys.exit()
+ 
+    dcm2nii(src_dir, out_dir, options = opt)
+    all_file = glob.glob(os.path.join(out_dir, '*.nii'))
+    new_file = min(all_file, key = os.path.getctime)
+    del_file = os.path.basename(new_file)
+    del_file = del_file.strip('co, o, .nii, .bval, .bvec')
+    if tag == 'mri':
+        old_file = os.path.join(out_dir, 'co' + del_file + '.nii')
+        out_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
+        if os.path.exists(old_file):               
+            os.rename(old_file, out_file)        
+        old_file = os.path.join(out_dir, 'o' + del_file + '.nii')
+        if os.path.exists(old_file): os.remove(old_file)
+        old_file = os.path.join(out_dir, del_file + '.nii')
+        if os.path.exists(old_file): os.remove(old_file)
+    if tag == 'dmri':
+        old_file = os.path.join(out_dir, del_file + '.nii')
+        out_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
+        if os.path.exists(old_file):               
+            os.rename(old_file, out_file)
+        old_file = os.path.join(out_dir, del_file + '.bval')
+        out_file = os.path.join(out_dir, subj_name + '.bval')
+        if os.path.exists(old_file):               
+            os.rename(old_file, out_file)
+        old_file = os.path.join(out_dir, del_file + '.bvec')
+        out_file = os.path.join(out_dir, subj_name + '.bvec')
+        if os.path.exists(old_file):               
+            os.rename(old_file, out_file)
 
 
-def brain_extraction(src_bet, out_dir, subj_name):
+def brain_extraction(src_bet, out_dir, subj_name, tag):
 
     try:
         out_bet_file = os.path.join(out_dir, subj_name + par_bet_suffix)
         if os.path.isdir(src_bet):
-            bet_file = [each for each in os.listdir(src_bet) 
-                        if each.endswith('.nii')][0]
+            bet_file = [f for f in os.listdir(src_bet) 
+                        if f.endswith(subj_name + '_' + tag + '.nii')][0]
         src_bet_file = os.path.join(src_bet, bet_file) 
         bet(src_bet_file, out_bet_file, par_bet_options)
     except:
         print "FAIL: bet - File: %s" % src_bet_file
-        exit
+        sys.exit()
 
 
 def eddy_current_correction(src_ecc_dir, out_ecc_dir, subj_name):
@@ -107,7 +111,7 @@ def eddy_current_correction(src_ecc_dir, out_ecc_dir, subj_name):
             eddy_correct(src_ecc_file, out_ecc_file, ref=par_ecc_ref)
     except:
         print "FAIL: eddy_correct - File: %s" % src_ecc_file
-        exit
+        sys.exit()
 
 
 def rescaling_isotropic_voxel(src_iso_dir, out_iso_dir, subj_name):
@@ -143,11 +147,11 @@ def atlas_registration(ref_flirt_dir, out_flirt_dir, aff_flirt_dir, subj_name):
     try:
         fsl_dir = os.environ['FSLDIR']
         fsl_atlas_file = [os.path.join(dirpath, f)
-                         for dirpath, dirnames, files in os.walk(fsl_dir)
-                         for f in files if f.endswith(par_atlas_file)][0]
+            for dirpath, dirnames, files in os.walk(fsl_dir, followlinks=True)
+            for f in files if f.endswith(par_atlas_file)][0]
     except IndexError:
         print "FAIL: atlas file not found - File: %s" % par_atlas_file
-        exit
+        sys.exit()
 
     ref_flirt_file = os.path.join(ref_flirt_dir, subj_name + par_iso_suffix)
     out_flirt_file = os.path.join(out_flirt_dir, subj_name + par_atlas_suffix)
@@ -218,7 +222,8 @@ def compute_tracking(src_dti_dir, out_trk_dir, subj_name):
     hdr['voxel_size'] = voxel_size
     hdr['voxel_order'] = 'LAS'
     hdr['dim'] = dims
-    strm = ((sl, None, None) for sl in streamlines)
+    strm = ((sl, None, None) for sl in streamlines 
+            if length(sl) > par_trk_min and length(sl) < par_trk_max)
     out_trk_file = os.path.join(out_trk_dir, subj_name + seed + par_trk_suffix)
     nib.trackvis.write(out_trk_file, strm, hdr, points_space='voxel')    
 

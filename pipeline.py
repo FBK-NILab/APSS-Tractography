@@ -31,13 +31,14 @@ from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, 
 11. Tractome preprocessing
 """
 
-# do_step = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-# do_step = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0]
-do_step =   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1,  1]
 
 def run_pipeline():
 
     print "*** BEGINNING OF PIPELINE COMPUTATION ***"
+
+    if not os.path.isdir(main_data_directory):
+        print "FAIL: setting parameters - FILE: data directory not found!"
+        sys.exit()
 
     subj = os.path.basename(main_data_directory)
     step = 0
@@ -100,7 +101,7 @@ def run_pipeline():
 
     print "Step %i: Converting Structural DICOM files to Nifti..." % step
     if do_step[step]:
-        dicom_to_nifti(dir_dicom_mri, dir_nii_mri, subj, 'mri')
+        dicom_to_nifti(dir_dicom_mri, dir_nii_mri, subj, par_mri_tag)
         print "DONE!"
     else:
         print "Skipped."
@@ -108,7 +109,7 @@ def run_pipeline():
 
     print "Step %i: Brain extraction of structural data..." % step
     if do_step[step]:
-        brain_extraction(dir_nii_mri, dir_mri_pre, subj)
+        brain_extraction(dir_nii_mri, dir_mri_pre, subj, par_mri_tag)
         print "DONE!"
     else:
         print "Skipped."
@@ -118,7 +119,7 @@ def run_pipeline():
 
     print "Step %i: Converting Diffusion DICOM files to Nifti..." % step
     if do_step[step]:
-        dicom_to_nifti(dir_dicom_dmri, dir_nii_dmri, subj, 'dmri')
+        dicom_to_nifti(dir_dicom_dmri, dir_nii_dmri, subj, par_dmri_tag)
         print 'DONE!'
     else:
         print "Skipped."
@@ -126,7 +127,7 @@ def run_pipeline():
 
     print "Step %i: Brain extraction of diffusion data..." % step
     if do_step[step]:
-        brain_extraction(dir_nii_dmri, dir_dmri_pre, subj)
+        brain_extraction(dir_nii_dmri, dir_dmri_pre, subj, par_dmri_tag)
         print "DONE!"
     else:
         print "Skipped."
@@ -193,11 +194,42 @@ def run_pipeline():
 
 if __name__ == '__main__':
     
-    if sys.argv and len(sys.argv) > 1:
-        if os.path.isdir(sys.argv[1]):
-            main_data_directory = sys.argv[1]
-        else:
-            do_step = map(int, argv[1].split())
+    do_step = [1] * 12
+
+    for arg in sys.argv[1:]:
+        if arg == '-h':
+            print "Usage:"
+            print "   pipeline.py <args>* "
+            print "Arguments:"
+            print "   path: <pathname>"
+            print "         Data file directory"
+            print "   step: 'number number ...'"
+            print "         1. Structural Dicom to nifti"
+            print "         2. Structural brain extraction"
+            print "         3. Diffusion DICOM to nifti"
+            print "         4. Diffusion brain extraction"
+            print "         5. Eddy current correction"
+            print "         6. Rescaling isotropic voxel"
+            print "         7. Registration of structural data"
+            print "         8. Registration of atlas"
+            print "         9. Reconstruction of tensor model"
+            print "         10. Tracking of streamlines"
+            print "         11. Tractome preprocessing"
+            print "   help: -h"
+            print "         this help"
+            print "Examples:"
+            print "   pipeline.py /path/to/my/data"
+            print "   pipeline.py /path/to/my/data '1 2 7'"
+            print "   pipeline.py '1 2 7'"
+            break
+
+        if not os.path.isdir(arg):
+            do_step =   [0] * 12
+            arg_step = map(int, arg.split())
+            for s in arg_step: do_step[s]=1
+
+        if os.path.isdir(arg):
+             main_data_directory = os.path.abspath(sys.argv[1])
 
     run_pipeline()
 

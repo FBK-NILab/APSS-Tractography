@@ -11,7 +11,13 @@ Distributed under the BSD 3-clause license. See COPYING.txt.
 
 ## Setting directories for Outputs and Inputs of the rest of the methods
 ## General directory where data resides and where to save the results
-main_data_directory = '/Users/paolo/Datasets/APSS-SS/COAL_270845_300914'
+main_data_directory = ''
+
+## Suffix for output filename of structural nifti
+par_mri_tag =  'mri'
+
+## Suffix for output filename of diffusion nifti
+par_dmri_tag =  'dmri'
 
 ## Optional parameters of 'dcm2nii' command
 par_dcm2nii_options = '-f y -e n -p n -a n -d n -g n -i n -o'
@@ -69,6 +75,12 @@ par_atlas_suffix = '_atlas.nii'
 
 ## Dof parameter of flirt registration
 par_atlas_dof = 12
+
+## Minimum length of streamlines
+par_trk_min = 0
+
+## Maximum length of streamlines
+par_trk_max = 1000
 
 ## Suffix for output filename of dipy tractography
 par_trk_suffix = '_apss.trk'
