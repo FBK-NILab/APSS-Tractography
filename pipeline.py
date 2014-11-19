@@ -9,15 +9,8 @@ Copyright (c) 2014, Fondazione Bruno Kessler
 Distributed under the BSD 3-clause license. See COPYING.txt.
 """
 
-import os
-import sys
-import platform
-import numpy as np
-import nibabel as nib
-from parameters import *
-from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tractome_preprocessing
-
 """
+The available steps of pipeline analysis:
 1. Structural Dicom to nifti
 2. Structural brain extraction
 3. Diffusion DICOM to nifti
@@ -30,6 +23,17 @@ from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, 
 10. Tracking of streamlines
 11. Tractome preprocessing
 """
+
+import os
+import sys
+import platform
+import numpy as np
+import nibabel as nib
+from parameters import *
+from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tractome_preprocessing
+
+
+do_step = [1] * 12
 
 
 def run_pipeline():
@@ -194,8 +198,6 @@ def run_pipeline():
 
 if __name__ == '__main__':
     
-    do_step = [1] * 12
-
     for arg in sys.argv[1:]:
         if arg == '-h':
             print "Usage:"
