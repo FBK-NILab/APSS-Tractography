@@ -221,7 +221,7 @@ if __name__ == '__main__':
             print "   pipeline.py /path/to/my/data"
             print "   pipeline.py /path/to/my/data '1 2 7'"
             print "   pipeline.py '1 2 7'"
-            break
+            sys.exit()
 
         if not os.path.isdir(arg):
             do_step =   [0] * 12
