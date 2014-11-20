@@ -22,12 +22,15 @@ from dipy.core.gradients import gradient_table
 from dipy.io.dpy import Dpy
 from dipy.data import get_sphere
 from dipy.tracking.eudx import EuDX
+from dipy.tracking.metrics import length
 from dipy.tracking.distances import bundles_distances_mam
 from dissimilarity_common import compute_dissimilarity
 from parameters import *
 
 
 def pipe(cmd, print_sto=True, print_ste=True):
+    """Open a pipe to a subprocess where execute an external command.
+    """
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     sto = p.stdout.readlines()
     ste = p.stderr.readlines()
