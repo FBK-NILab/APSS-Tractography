@@ -14,18 +14,30 @@ import glob
 import pickle
 import numpy as np
 import nibabel as nib
+from subprocess import Popen, PIPE
 import dipy.reconst.dti as dti
 from dipy.reconst.csdeconv import ConstrainedSphericalDeconvModel, auto_response
-from dipy.external.fsl import pipe
 from dipy.align.aniso2iso import resample
 from dipy.core.gradients import gradient_table
 from dipy.io.dpy import Dpy
 from dipy.data import get_sphere
 from dipy.tracking.eudx import EuDX
+from dipy.tracking.metrics import length
 from dipy.tracking.distances import bundles_distances_mam
 from dissimilarity_common import compute_dissimilarity
 from parameters import *
 
+
+def pipe(cmd, print_sto=True, print_ste=True):
+    """Open a pipe to a subprocess where execute an external command.
+    """
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    sto = p.stdout.readlines()
+    ste = p.stderr.readlines()
+    if print_sto :
+        print(sto)
+    if print_ste :
+        print(ste)
 
 def dcm2nii(dname, outdir, filt='*.dcm', options='-d n -g n -i n -o'):
     cmd = 'dcm2nii ' + options + ' ' + outdir + ' ' + dname
@@ -59,7 +71,8 @@ def dicom_to_nifti(src_dir, out_dir, subj_name, tag, opt=par_dcm2nii_options):
         print "FAIL: dcm2nii - FILE: *.dcm not found"
         sys.exit()
  
-    dcm2nii(src_dir, out_dir, options = opt)
+    cmd = 'dcm2nii ' + opt + ' ' + out_dir + ' ' + src_dir
+    pipe(cmd, print_sto=False, print_ste=False)
     all_file = glob.glob(os.path.join(out_dir, '*.nii'))
     new_file = min(all_file, key = os.path.getctime)
     del_file = os.path.basename(new_file)
@@ -95,8 +108,9 @@ def brain_extraction(src_bet, out_dir, subj_name, tag):
         if os.path.isdir(src_bet):
             bet_file = [f for f in os.listdir(src_bet) 
                         if f.endswith(subj_name + '_' + tag + '.nii')][0]
-        src_bet_file = os.path.join(src_bet, bet_file) 
-        bet(src_bet_file, out_bet_file, par_bet_options)
+        src_bet_file = os.path.join(src_bet, bet_file)
+        cmd = 'bet ' + src_bet_file + ' ' + out_bet_file + par_bet_options
+        pipe(cmd, print_sto=False, print_ste=False)
     except:
         print "FAIL: bet - File: %s" % src_bet_file
         sys.exit()
@@ -108,7 +122,9 @@ def eddy_current_correction(src_ecc_dir, out_ecc_dir, subj_name):
         src_ecc_file = os.path.join(src_ecc_dir, subj_name + par_bet_suffix)
         out_ecc_file = os.path.join(out_ecc_dir, subj_name + par_ecc_suffix)
         if src_ecc_file is not None and out_ecc_file is not None:
-            eddy_correct(src_ecc_file, out_ecc_file, ref=par_ecc_ref)
+            cmd = 'eddy_correct ' + src_ecc_file + ' ' + out_ecc_file + \
+                  ' ' + str(par_ecc_ref)
+            pipe(cmd, print_sto=False, print_ste=False)
     except:
         print "FAIL: eddy_correct - File: %s" % src_ecc_file
         sys.exit()
