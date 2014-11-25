@@ -89,7 +89,7 @@ par_trk_max = 1000
 par_trk_suffix = '_apss.trk'
 
 ## Suffix for output filename of trackvis tractography
-par_dipy_suffix = '_apss.dipy'
+par_dipy_suffix = '_apss.dpy'
 
 ## Suffix for output filename of dipy tractography
 par_csa_suffix = '_csa.trk'
