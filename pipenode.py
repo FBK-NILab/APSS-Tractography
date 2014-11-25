@@ -28,6 +28,7 @@ from dissimilarity_common import compute_dissimilarity
 from parameters import *
 
 
+
 def pipe(cmd, print_sto=True, print_ste=True):
     """Open a pipe to a subprocess where execute an external command.
     """
@@ -192,8 +193,8 @@ def compute_reconstruction(src_dmri_dir, subj_name):
     tensors = tensor_model.fit(data)
     FA = dti.fractional_anisotropy(tensors.evals)
     FA[np.isnan(FA)] = 0
-    Color_FA = dti.color_fa(FA, tensors.evecs)
-
+    Color_FA = np.array(255*(dti.color_fa(FA, tensors.evecs)),'uint8')
+    
     out_evecs_file = os.path.join(src_dmri_dir, subj_name + par_evecs_suffix)
     evecs_img = nib.Nifti1Image(tensors.evecs.astype(np.float32), affine)
     nib.save(evecs_img, out_evecs_file)
@@ -202,8 +203,13 @@ def compute_reconstruction(src_dmri_dir, subj_name):
     fa_img = nib.Nifti1Image(FA.astype(np.float32), affine)
     nib.save(fa_img, out_fa_file)
 
-    out_cfa_file = os.path.join(src_dmri_dir, subj_name + par_cfa_suffix)
-    cfa_img = nib.Nifti1Image(np.array(255*Color_FA,'uint8'), affine)
+    out_cfa_file = os.path.join(src_dmri_dir, subj_name + par_cfa_tome_suffix)
+    cfa_img = nib.Nifti1Image(Color_FA, affine)
+    nib.save(cfa_img, out_cfa_file)
+
+    dt = np.dtype([('R', 'u1'), ('G', 'u1'), ('B', 'u1')])
+    out_cfa_file = os.path.join(src_dmri_dir, subj_name + par_cfa_trkvis_suffix)
+    cfa_img = nib.Nifti1Image((Color_FA.view((dt)).reshape(Color_FA.shape[:3])), affine)
     nib.save(cfa_img, out_cfa_file)
 
 
