@@ -64,8 +64,11 @@ par_evecs_suffix = '_evecs.nii.gz'
 ## Suffix for output filename of FA
 par_fa_suffix = '_FA.nii.gz'
 
-## Suffix for output filename of color FA 
-par_cfa_suffix = '_Color_FA.nii.gz'
+## Suffix for output filename of color FA with trackvis data structure
+par_cfa_trkvis_suffix = '_Color_FA_trk.nii.gz'
+
+## Suffix for output filename of color FA with dipy data structure
+par_cfa_tome_suffix = '_Color_FA_dpy.nii.gz'
 
 ## Suffix for output filename of dipy tractography
 par_atlas_file = 'HarvardOxford-cort-maxprob-thr50-2mm.nii.gz'
@@ -86,7 +89,7 @@ par_trk_max = 1000
 par_trk_suffix = '_apss.trk'
 
 ## Suffix for output filename of trackvis tractography
-par_dipy_suffix = '_apss.dipy'
+par_dipy_suffix = '_apss.dpy'
 
 ## Suffix for output filename of dipy tractography
 par_csa_suffix = '_csa.trk'
