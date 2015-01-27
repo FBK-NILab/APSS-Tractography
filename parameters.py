@@ -11,7 +11,7 @@ Distributed under the BSD 3-clause license. See COPYING.txt.
 
 ## Setting directories for Outputs and Inputs of the rest of the methods
 ## General directory where data resides and where to save the results
-main_data_directory = ''
+main_data_directory = '/Users/paolo/Datasets/HCP/APSS/124422'
 
 ## Suffix for output filename of structural nifti
 par_mri_tag =  'mri'
