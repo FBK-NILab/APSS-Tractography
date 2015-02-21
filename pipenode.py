@@ -219,6 +219,7 @@ def compute_tracking(src_dti_dir, out_trk_dir, subj_name):
     src_fa_file = os.path.join(src_dti_dir, subj_name + par_fa_suffix)
     fa_img = nib.load(src_fa_file)
     FA = fa_img.get_data()
+    affine = fa_img.get_affine()
 
     src_evecs_file = os.path.join(src_dti_dir, subj_name + par_evecs_suffix)
     evecs_img = nib.load(src_evecs_file)
@@ -244,6 +245,7 @@ def compute_tracking(src_dti_dir, out_trk_dir, subj_name):
     hdr['voxel_size'] = voxel_size
     hdr['voxel_order'] = 'LAS'
     hdr['dim'] = dims
+    hdr['vox_to_ras'] = affine
     strm = ((sl, None, None) for sl in streamlines 
             if length(sl) > par_trk_min and length(sl) < par_trk_max)
     out_trk_file = os.path.join(out_trk_dir, subj_name + seed + par_trk_suffix)
