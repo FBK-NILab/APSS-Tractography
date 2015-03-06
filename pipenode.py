@@ -173,7 +173,7 @@ def atlas_registration(ref_flirt_dir, out_flirt_dir, aff_flirt_dir, subj_name):
     ref_flirt_file = os.path.join(ref_flirt_dir, subj_name + par_iso_suffix)
     out_flirt_file = os.path.join(out_flirt_dir, subj_name + par_atlas_suffix)
     aff_flirt_file = os.path.join(aff_flirt_dir, subj_name + par_aff_suffix)
-    pipe('flirt -in ' + fsl_atlas_file + ' -ref '+ ref_flirt_file +' -out '+ out_flirt_file +' -omat '+ aff_flirt_file +' -dof '+ str(par_atlas_dof) + ' -bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12  -interp trilinear')
+    pipe('flirt -in ' + fsl_atlas_file + ' -ref '+ ref_flirt_file +' -out '+ out_flirt_file +' -omat '+ aff_flirt_file + ' ' + par_flirt_opt)
 
 
 def compute_reconstruction(src_dmri_dir, subj_name):
@@ -283,3 +283,27 @@ def tractome_preprocessing(src_trk_dir, subj_name):
     pickle.dump(info, open(out_spa_file,'w+'), protocol=pickle.HIGHEST_PROTOCOL)
 
 
+def roi_registration(src_fa_dir, out_roi_dir, subj_name):
+    
+    # Compute the affine from atlas
+    src_atlas = os.path.join(par_atlas_dir, par_atlas_file)
+    if not os.path.exists(src_atlas):
+        print 'Atlas not found: %s' % src_atlas
+        return
+
+    src_fa = os.path.join(src_fa_dir, subj_name + par_fa_suffix)
+    src_aff = os.path.join(src_fa_dir, par_atlas_aff)
+    cmd = 'flirt -in %s -ref %s -omat %s %s' % (src_atlas, src_fa, src_aff, par_flirt_opt)
+    pipe(cmd, print_sto=False, print_ste=False)
+
+    # Apply the affine to all ROIs
+    if not os.path.exists(par_roi_dir):
+        print 'Pathname for ROI not found: %s' % par_roi_dir
+        return
+
+    all_roi = [f for f in os.listdir(par_roi_dir) if f.endswith('.nii')]
+    for roi in all_roi[:2]:
+        src_roi = os.path.join(par_roi_dir, roi)
+        out_roi = os.path.join(out_roi_dir, roi)
+        cmd = 'flirt -in %s -ref %s -applyxfm -init %s -out %s -interp nearestneighbour' % (src_roi, src_fa, src_aff, out_roi)
+        pipe(cmd, print_sto=False, print_ste=False)

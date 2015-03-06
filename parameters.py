@@ -11,7 +11,7 @@ Distributed under the BSD 3-clause license. See COPYING.txt.
 
 ## Setting directories for Outputs and Inputs of the rest of the methods
 ## General directory where data resides and where to save the results
-main_data_directory = '/Users/paolo/Datasets/HCP/APSS/124422'
+main_data_directory = ''
 
 ## Suffix for output filename of structural nifti
 par_mri_tag =  'mri'
@@ -46,6 +46,9 @@ par_iso_suffix = '_iso.nii.gz'
 ## Dof parameter of flirt registration
 par_flirt_dof = 6
 
+## Flirt optional parameters
+par_flirt_opt = '-bins 256 -cost corratio -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -dof 12  -interp trilinear'
+
 ## Suffix for output filename of flirt registration
 par_flirt_suffix = '_flirt.nii.gz'
 
@@ -53,10 +56,13 @@ par_flirt_suffix = '_flirt.nii.gz'
 par_aff_suffix = '_flirt.mat'
 
 ## Number of seeds for tracking
-par_eudx_seeds = 3000000
+par_eudx_seeds = 1000000
 
 ## FA threshold for tracking 
 par_eudx_threshold = .2
+
+## Number of seeds for tracking
+par_eudx_suffix = '1M'
 
 ## Suffix for output filename of eigen vectors
 par_evecs_suffix = '_evecs.nii.gz'
@@ -70,8 +76,17 @@ par_cfa_trkvis_suffix = '_Color_FA_trk.nii.gz'
 ## Suffix for output filename of color FA with dipy data structure
 par_cfa_tome_suffix = '_Color_FA_dpy.nii.gz'
 
-## Suffix for output filename of dipy tractography
-par_atlas_file = 'HarvardOxford-cort-maxprob-thr50-2mm.nii.gz'
+## Pathname of atlas for registration
+par_atlas_dir = '/usr/local/fsl/data/atlases/JHU/'
+
+## Name of atlas for registration of FA 
+par_atlas_file = 'JHU-ICBM-FA-2mm.nii.gz'
+
+## Name of affine for roi registration
+par_atlas_aff = 'affine4roi'
+
+## Pathname of rois for registration
+par_roi_dir = ''
 
 ## Suffix for output filename of registered atlas
 par_atlas_suffix = '_atlas.nii'
@@ -102,3 +117,4 @@ par_prototype_policy = 'sff'
 
 ## Distance measure for dissimilarity computation
 par_prototype_distance = 'bundles_distances_mam'
+
