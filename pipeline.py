@@ -22,6 +22,7 @@ The available steps of pipeline analysis:
 9. Reconstruction of tensor model
 10. Tracking of streamlines
 11. Tractome preprocessing
+12. Registration of ROI from atlas
 """
 
 import os
@@ -30,10 +31,9 @@ import platform
 import numpy as np
 import nibabel as nib
 from parameters import *
-from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tractome_preprocessing
+from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tractome_preprocessing, roi_registration
 
-
-do_step = [1] * 12
+do_step = [1] * 13
 
 
 def run_pipeline():
@@ -193,6 +193,14 @@ def run_pipeline():
         print "Skipped."
     step += 1
 
+    print "Step %i: ROI Registration..." % step
+    if do_step[step]:
+        roi_registration(dir_nii_dmri, dir_trk_roi, subj)
+        print "DONE!"
+    else:
+        print "Skipped."
+    step += 1
+
     print "*** END OF PIPELINE ***"
 
 
@@ -217,6 +225,7 @@ if __name__ == '__main__':
             print "         9. Reconstruction of tensor model"
             print "         10. Tracking of streamlines"
             print "         11. Tractome preprocessing"
+            print "         12. Registration of ROI from atlas"
             print "   help: -h"
             print "         this help"
             print "Examples:"
@@ -226,7 +235,7 @@ if __name__ == '__main__':
             sys.exit()
 
         if not os.path.isdir(arg):
-            do_step =   [0] * 12
+            do_step =   [0] * 13
             arg_step = map(int, arg.split())
             for s in arg_step: do_step[s]=1
 
