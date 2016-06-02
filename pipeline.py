@@ -21,8 +21,9 @@ The available steps of pipeline analysis:
 8. Registration of atlas
 9. Reconstruction of tensor model
 10. Tracking of streamlines
-11. Tractome preprocessing
-12. Registration of ROI from atlas
+11. Constraint Spherical Deconvolution
+12. Tractome preprocessing
+13. Registration of ROI from atlas
 """
 
 import os
@@ -31,9 +32,10 @@ import platform
 import numpy as np
 import nibabel as nib
 from parameters import *
-from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tractome_preprocessing, roi_registration
+from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tracking_eudx4csd, tractome_preprocessing, roi_registration
 
-do_step = [1] * 13
+max_step = 14
+do_step = [1] * max_step
 
 
 def run_pipeline():
@@ -185,6 +187,14 @@ def run_pipeline():
         print "Skipped."
     step += 1
 
+    print "Step %i: Constraint Spherical Deconvolution..." % step
+    if do_step[step]:
+        tracking_eudx4csd(dir_nii_dmri, dir_trk_tractography, subj)
+        print "DONE!"
+    else:
+        print "Skipped."
+    step += 1
+
     print "Step %i: Tractome preprocessing..." % step
     if do_step[step]:
         tractome_preprocessing(dir_trk_tractography, subj)
@@ -224,8 +234,9 @@ if __name__ == '__main__':
             print "         8. Registration of atlas"
             print "         9. Reconstruction of tensor model"
             print "         10. Tracking of streamlines"
-            print "         11. Tractome preprocessing"
-            print "         12. Registration of ROI from atlas"
+            print "         11. Constraint Spherical Deconvolution"
+            print "         12. Tractome preprocessing"
+            print "         13. Registration of ROI from atlas"
             print "   help: -h"
             print "         this help"
             print "Examples:"
@@ -235,7 +246,7 @@ if __name__ == '__main__':
             sys.exit()
 
         if not os.path.isdir(arg):
-            do_step =   [0] * 13
+            do_step =   [0] * max_step
             arg_step = map(int, arg.split())
             for s in arg_step: do_step[s]=1
 
