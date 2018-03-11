@@ -18,7 +18,7 @@ from subprocess import Popen, PIPE
 import dipy.reconst.dti as dti
 from dipy.reconst.csdeconv import ConstrainedSphericalDeconvModel, auto_response
 from dipy.reconst.peaks import peaks_from_model
-from dipy.align.aniso2iso import resample # to be removed
+#from dipy.align.aniso2iso import resample 
 from dipy.align.reslice import reslice
 from dipy.core.gradients import gradient_table
 from dipy.io import read_bvals_bvecs
@@ -62,11 +62,6 @@ def pipe(cmd, print_sto=True, print_ste=True):
     if print_ste :
         print(ste)
 
-def dcm2nii(dname, outdir, filt='*.dcm', options='-d n -g n -i n -o'):
-    cmd = 'dcm2nii ' + options + ' ' + outdir + ' ' + dname
-    pipe(cmd, print_sto=False, print_ste=False)
-
-
 def eddy_correct(in_nii, out_nii, ref=0):
     cmd = 'eddy_correct ' + in_nii + ' ' + out_nii + ' ' + str(ref)
     pipe(cmd, print_sto=False, print_ste=False)
@@ -80,7 +75,7 @@ def bet(in_nii, out_nii, options=' -F -f .2 -g 0'):
 def dicom_to_nifti(src_dir, out_dir, subj_name, tag, opt=par_dcm2nii_options):
 
     if src_dir is not None and out_dir is not None:
-        old_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
+        old_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii.gz')
         if os.path.exists(old_file): os.remove(old_file)
         old_file = os.path.join(out_dir, subj_name + '.bval')
         if os.path.exists(old_file): os.remove(old_file)
@@ -94,45 +89,40 @@ def dicom_to_nifti(src_dir, out_dir, subj_name, tag, opt=par_dcm2nii_options):
         print "FAIL: dcm2nii - FILE: *.dcm not found"
         sys.exit()
  
-    cmd = 'dcm2nii ' + opt + ' ' + out_dir + ' ' + src_dir
-    pipe(cmd, print_sto=False, print_ste=False)
-    all_file = glob.glob(os.path.join(out_dir, '*.nii'))
-    new_file = min(all_file, key = os.path.getctime)
-    del_file = os.path.basename(new_file)
-    del_file = del_file.strip('co, o, .nii, .bval, .bvec')
+    cmd = 'dcm2niix ' + '-f ' + subj_name + ' -z y -o ' + out_dir + ' ' + src_dir
+    pipe(cmd, print_sto=True, print_ste=True)
+    old_file = os.path.join(out_dir, subj_name + '.nii.gz')
+    new_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii.gz')
+    os.rename(old_file, new_file)
+    old_file = os.path.join(out_dir, subj_name + '.json')
+    new_file = os.path.join(out_dir, subj_name + '_' + tag + '.json')
+    os.rename(old_file, new_file)
     if tag == 'mri':
-        old_file = os.path.join(out_dir, 'co' + del_file + '.nii')
-        out_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
-        if os.path.exists(old_file):               
-            os.rename(old_file, out_file)        
-        old_file = os.path.join(out_dir, 'o' + del_file + '.nii')
-        if os.path.exists(old_file): os.remove(old_file)
-        old_file = os.path.join(out_dir, del_file + '.nii')
-        if os.path.exists(old_file): os.remove(old_file)
+        None
     if tag == 'dmri':
-        old_file = os.path.join(out_dir, del_file + '.nii')
-        out_file = os.path.join(out_dir, subj_name + '_' + tag + '.nii')
-        if os.path.exists(old_file):               
-            os.rename(old_file, out_file)
-        old_file = os.path.join(out_dir, del_file + '.bval')
-        out_file = os.path.join(out_dir, subj_name + '.bval')
-        if os.path.exists(old_file):               
-            os.rename(old_file, out_file)
-        old_file = os.path.join(out_dir, del_file + '.bvec')
-        out_file = os.path.join(out_dir, subj_name + '.bvec')
-        if os.path.exists(old_file):               
-            os.rename(old_file, out_file)
+        None
 
 
 def brain_extraction(src_bet, out_dir, subj_name, tag):
 
     try:
         out_bet_file = os.path.join(out_dir, subj_name + par_bet_tag + ".nii.gz")
-        if os.path.isdir(src_bet):
-            bet_file = [f for f in os.listdir(src_bet) 
-                        if f.endswith(subj_name + '_' + tag + '.nii')][0]
+        bet_file = os.path.join(src_bet, subj_name + '_' + tag + '.nii.gz')
         src_bet_file = os.path.join(src_bet, bet_file)
         cmd = 'bet ' + src_bet_file + ' ' + out_bet_file + par_bet_options
+        pipe(cmd, print_sto=False, print_ste=False)
+    except:
+        print "FAIL: bet - File: %s" % src_bet_file
+        sys.exit()
+
+        
+def brain_dwi_extraction(src_bet, out_dir, subj_name, tag):
+
+    try:
+        out_bet_file = os.path.join(out_dir, subj_name + par_bet_tag + ".nii.gz")
+        bet_file = os.path.join(src_bet, subj_name + '_' + tag + '.nii.gz')
+        src_bet_file = os.path.join(src_bet, bet_file)
+        cmd = 'bet ' + src_bet_file + ' ' + out_bet_file + par_bet4dwi_options
         pipe(cmd, print_sto=False, print_ste=False)
     except:
         print "FAIL: bet - File: %s" % src_bet_file
@@ -320,11 +310,11 @@ def compute_tracking(src_dti_dir, out_trk_dir, subj_name):
     out_trk_file = os.path.join(out_trk_dir, subj_name + seed + par_trk_tag)
     nib.trackvis.write(out_trk_file, strm, hdr, points_space='voxel')    
 
-    tracks = [track for track in streamlines]
-    out_dipy_file = os.path.join(out_trk_dir, subj_name + seed + par_dipy_tag)
-    dpw = Dpy(out_dipy_file, 'w')
-    dpw.write_tracks(tracks)
-    dpw.close()
+    #tracks = [track for track in streamlines]
+    #out_dipy_file = os.path.join(out_trk_dir, subj_name + seed + par_dipy_tag)
+    #dpw = Dpy(out_dipy_file, 'w')
+    #dpw.write_tracks(tracks)
+    #dpw.close()
 
 
 def tracking_eudx4csd(dir_src, dir_out, subj_name, verbose=False):

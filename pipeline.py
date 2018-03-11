@@ -32,7 +32,7 @@ import platform
 import numpy as np
 import nibabel as nib
 from parameters import *
-from pipenode import dicom_to_nifti, brain_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tracking_eudx4csd, tractome_preprocessing, roi_registration
+from pipenode import dicom_to_nifti, brain_extraction, brain_dwi_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tracking_eudx4csd, tractome_preprocessing, roi_registration
 
 max_step = 14
 do_step = [1] * max_step
@@ -133,7 +133,7 @@ def run_pipeline():
 
     print "Step %i: Brain extraction of diffusion data..." % step
     if do_step[step]:
-        brain_extraction(dir_nii_dmri, dir_dmri_pre, subj, par_dmri_tag)
+        brain_dwi_extraction(dir_nii_dmri, dir_dmri_pre, subj, par_dmri_tag)
         print "DONE!"
     else:
         print "Skipped."

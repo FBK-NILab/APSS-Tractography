@@ -24,6 +24,7 @@ par_dcm2nii_options = '-f y -e n -p n -a n -d n -g n -i n -o'
 
 ## Optional parameters of 'bet' command
 par_bet_options = ' -R -F -f .35 -g 0'
+par_bet4dwi_options = ' -R -F'
 
 ## Suffix for output filename of 'bet' command
 par_bet_tag =  '_bet'
@@ -98,7 +99,7 @@ par_atlas_file = 'JHU-ICBM-FA-2mm.nii.gz'
 par_roi_aff = 'affine4roi'
 
 ## Pathname of rois for registration
-par_roi_dir = '/Users/paolo/Datasets/JHU/'
+par_roi_dir = '/Users/silviosarubbo/CLINT/Datasets/JHU/'
 
 ## Name of atlas for registration of ROI 
 par_roi_atlas = 'JHU-ICBM-DWI-1mm.nii.gz'
@@ -110,10 +111,10 @@ par_atlas_tag = '_atlas.nii'
 par_atlas_dof = 12
 
 ## Minimum length of streamlines
-par_trk_min = 0
+par_trk_min = 5
 
 ## Maximum length of streamlines
-par_trk_max = 1000
+par_trk_max = 1500
 
 ## Suffix for output filename of dipy tractography
 par_trk_tag = '_apss.trk'
