@@ -1,10 +1,11 @@
 #!/bin/bash
 
 BASEDIR=$(dirname "$0")
+PYTHONDIR=${BASEDIR}/../../..
 
 export PATH=/Users/paolo/Software/miniconda3/bin:$PATH
 #export PATH=/Users/silviosarubbo/CLINT/Software/miniconda3/bin:$PATH
-export PYTHONPATH=${BASEDIR}:PYTHONPATH
+export PYTHONPATH=${PYTHONDIR}:PYTHONPATH
 
 ${BASEDIR}/pipeline_gui.py
 
