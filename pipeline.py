@@ -181,7 +181,7 @@ def run_pipeline():
 
     print("Step %i: Deterministic tracking with DTI model..." % step)
     if do_step[step]:
-        compute_dti_det_tracking(dir_nii_dmri, dir_trk_tractography, subj)
+        compute_dti_tracking(dir_nii_dmri, dir_trk_tractography, subj)
         print("DONE!")
     else:
         print("Skipped.")

@@ -314,7 +314,7 @@ def compute_reconstruction(src_dmri_dir, subj_name):
     nib.save(fix_rgb, cfa) 
 
 
-def compute_dti_det_tracking(src_dmri_dir, out_trk_dir, subj_name):
+def compute_dti_tracking(src_dmri_dir, out_trk_dir, subj_name):
 
     dwi =  os.path.join(src_dmri_dir, subj_name + par_iso_tag + ".nii.gz")
     bval =  os.path.join(src_dmri_dir, subj_name + ".bval")
