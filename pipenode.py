@@ -46,7 +46,7 @@ def load_nifti(fname, verbose=False):
         print(affine)
         print(img.get_header().get_zooms()[:3])
         print(nib.aff2axcodes(affine))
-        print
+        print("")
     return data, affine
 
 def save_nifti(fname, data, affine, verbose=False):
@@ -129,7 +129,7 @@ def brain_dwi_extraction(src_bet, out_dir, subj_name, tag):
         cmd = 'bet ' + src_bet_file + ' ' + out_bet_file + par_bet4dwi_options
         pipe(cmd, print_sto=False, print_ste=False)
     except:
-        print "FAIL: bet - File: %s" % src_bet_file
+        print("FAIL: bet - File: %s" % src_bet_file)
         sys.exit()
 
 
