@@ -304,7 +304,8 @@ def compute_reconstruction(src_dmri_dir, subj_name):
     FA = nib.load(fa).get_data()
     MD = nib.load(md).get_data()
     affine = nib.load(fa).affine
-    WM = (np.logical_or(FA >= 0.4, (np.logical_and(FA >= 0.15, MD >= 0.0011))))
+    #WM = (np.logical_or(FA >= 0.4, (np.logical_and(FA >= 0.15, MD >= 0.0011))))
+    WM = (np.logical_or(FA >= 0.15)
     WM = WM.astype('uint16')
     img_seed = nib.Nifti1Image(WM, affine)
     nib.save(img_seed, seed)
