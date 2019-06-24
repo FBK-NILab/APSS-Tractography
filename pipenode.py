@@ -165,7 +165,7 @@ def rescaling_isotropic_voxel(src_ecc_dir, out_iso_dir, subj_name):
         nib.save(data_img, tmp_iso_file)
 
     except:
-        print "FAIL: isotropic rescaling of dmri - File: %s" % src_ecc_file
+        print("FAIL: isotropic rescaling of dmri - File: %s" % src_ecc_file)
         exit
 
     tmp_mask_tag = "_iso_mask.nii.gz"
@@ -207,7 +207,7 @@ def rescaling_isotropic_voxel(src_ecc_dir, out_iso_dir, subj_name):
         nib.save(data_img, out_bet_file)
 
     except:
-        print "FAIL: isotropic rescaling of structural - File: %s" % src_bet_file
+        print("FAIL: isotropic rescaling of structural - File: %s" % src_bet_file)
         exit
 
     out_iso_file = os.path.join(out_iso_dir, subj_name + par_iso_tag + ".nii.gz")
