@@ -294,12 +294,12 @@ def compute_reconstruction(src_dmri_dir, subj_name):
     mask =  os.path.join(src_dmri_dir, subj_name + "_iso_mask.nii.gz")
     seed =  os.path.join(src_dmri_dir, subj_name + "_seed.nii.gz")
     fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
-    md =  os.path.join(src_dmri_dir, subj_name + "_md.nii.gz")
-    rgb =  os.path.join(src_dmri_dir, subj_name + "_rgb.nii.gz")
-    cfa =  os.path.join(src_dmri_dir, subj_name + "_cfa.nii.gz")
+    md =  os.path.join(src_dmri_dir, subj_name + "_MD.nii.gz")
+    rgb =  os.path.join(src_dmri_dir, subj_name + "_RGB.nii.gz")
+    cfa =  os.path.join(src_dmri_dir, subj_name + "_CFA.nii.gz")
     
     cmd = "dipy_fit_dti --force --save_metrics fa md rgb --out_fa %s --out_md %s --out_rgb %s %s %s %s %s" % (fa, md, rgb, dwi, bval, bvec, mask)
-    pipe(cmd, print_sto=False, print_ste=False)
+    pipe(cmd, print_sto=True, print_ste=True)
 
     FA = nib.load(fa).get_data()
     MD = nib.load(md).get_data()
