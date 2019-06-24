@@ -32,7 +32,7 @@ import platform
 import numpy as np
 import nibabel as nib
 from parameters import *
-from pipenode import dicom_to_nifti, brain_extraction, brain_dwi_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_dti_det_tracking, compute_csd, compute_csd_det_tracking, compute_csd_prob_tracking, tractome_preprocessing, roi_registration
+from pipenode import dicom_to_nifti, brain_extraction, brain_dwi_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_dti_tracking, compute_csd, compute_csd_det_tracking, compute_csd_prob_tracking, tractome_preprocessing, roi_registration
 
 max_step = 16
 do_step = [1] * max_step
