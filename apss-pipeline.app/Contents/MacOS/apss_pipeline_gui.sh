@@ -7,7 +7,7 @@ export PATH=/Users/paolo/Software/miniconda3/bin:$PATH
 #export PATH=/Users/silviosarubbo/CLINT/Software/miniconda3/bin:$PATH
 export PYTHONPATH=${PYTHONDIR}:PYTHONPATH
 
-${BASEDIR}/pipeline_gui.py
+${BASEDIR}/apss_pipeline_gui.py
 
 #cd ${BASEDIR}/../../..
 #ROOTDIR=`pwd`
