@@ -33,7 +33,7 @@ def compute_dti_det_tracking(dwi, bval, bvec, mask, fa, trk):
 
     fa_img = nib.load(fa)
 
-    stop = fa_img.get_data()
+    stop = nib.load(mask).get_data()
     stopping_thr = 0.15 #0.25
     classifier = ThresholdTissueClassifier(stop, stopping_thr)
 
