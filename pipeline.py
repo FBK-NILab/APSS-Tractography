@@ -32,9 +32,9 @@ import platform
 import numpy as np
 import nibabel as nib
 from parameters import *
-from pipenode import dicom_to_nifti, brain_extraction, brain_dwi_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_tracking, tracking_eudx4csd, tractome_preprocessing, roi_registration
+from pipenode import dicom_to_nifti, brain_extraction, brain_dwi_extraction, eddy_current_correction, rescaling_isotropic_voxel, flirt_registration, atlas_registration, compute_reconstruction, compute_dti_det_tracking, compute_csd, compute_csd_det_tracking, compute_csd_prob_tracking, tractome_preprocessing, roi_registration
 
-max_step = 14
+max_step = 16
 do_step = [1] * max_step
 
 
@@ -179,17 +179,33 @@ def run_pipeline():
         print("Skipped.")
     step += 1
 
-    print("Step %i: Tracking of streamlines..." % step)
+    print("Step %i: Deterministic tracking with DTI model..." % step)
     if do_step[step]:
-        compute_tracking(dir_nii_dmri, dir_trk_tractography, subj)
+        compute_dti_det_tracking(dir_nii_dmri, dir_trk_tractography, subj)
         print("DONE!")
     else:
         print("Skipped.")
     step += 1
 
-    print("Step %i: Constraint Spherical Deconvolution..." % step)
+    print("Step %i: Reconstruction CSD model..." % step)
     if do_step[step]:
-        tracking_eudx4csd(dir_nii_dmri, dir_trk_tractography, subj)
+        compute_csd(dir_nii_dmri, dir_nii_dmri, subj)
+        print("DONE!")
+    else:
+        print("Skipped.")
+    step += 1
+
+    print("Step %i: Deterministic tracking with CSD model..." % step)
+    if do_step[step]:
+        compute_csd_det_tracking(dir_nii_dmri, dir_trk_tractography, subj)
+        print("DONE!")
+    else:
+        print("Skipped.")
+    step += 1
+
+    print("Step %i: Probabilistic tracking with CSD model..." % step)
+    if do_step[step]:
+        compute_csd_prob_tracking(dir_nii_dmri, dir_trk_tractography, subj)
         print("DONE!")
     else:
         print("Skipped.")
@@ -234,10 +250,12 @@ if __name__ == '__main__':
             print("         7. Registration of structural data")
             print("         8. Registration of atlas")
             print("         9. Reconstruction of tensor model")
-            print("         10. Tracking of streamlines")
+            print("         10. Deterministic tracking with DTI")
             print("         11. Constraint Spherical Deconvolution")
-            print("         12. Tractome preprocessing")
-            print("         13. Registration of ROI from atlas")
+            print("         12. Deterministic tracking with CSD")
+            print("         13. Probabilistic tracking with CSD")
+            print("         14. Tractome preprocessing")
+            print("         15. Registration of ROI from atlas")
             print("   help: -h")
             print("         this help")
             print("Examples:")

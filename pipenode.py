@@ -27,6 +27,12 @@ from dipy.tracking.metrics import length
 from dipy.tracking.distances import bundles_distances_mam
 from dissimilarity_common import compute_dissimilarity
 from parameters import *
+from nibabel.orientations import aff2axcodes
+from dipy.tracking.streamline import transform_streamlines
+from dipy.tracking.utils import length
+from compute_dti_det_tracking import compute_dti_det_tracking
+from compute_csd_det_tracking import compute_csd_det_tracking
+from compute_csd_prob_tracking import compute_csd_prob_tracking
 
 
 def load_nifti(fname, verbose=False):
@@ -178,6 +184,7 @@ def rescaling_isotropic_voxel(src_ecc_dir, out_iso_dir, subj_name):
         data, affine = reslice(src_data, src_affine, src_mask_size, out_iso_size, mode="nearest")
         data_img = nib.Nifti1Image(data, affine)
         nib.save(data_img, out_mask_file)
+        fix_wm_mask(out_mask_file, out_mask_file)
 
     except:
         print("FAIL: isotropic rescaling of mask - File: %s" % src_mask_file)
@@ -235,164 +242,199 @@ def atlas_registration(ref_flirt_dir, out_flirt_dir, aff_flirt_dir, subj_name):
     pipe('flirt -in ' + fsl_atlas_file + ' -ref '+ ref_flirt_file +' -out '+ out_flirt_file +' -omat '+ aff_flirt_file + ' ' + par_flirt_opt)
 
 
+def fix_wm_mask(in_nii, out_nii):
+    cmd = 'maskfilter -force -npass 3 ' + in_nii + ' erode ' + out_nii
+    pipe(cmd, print_sto=False, print_ste=False)
+
+
+def decfa(img_orig, scale=False):
+    """
+    Create a nifti-compliant directional-encoded color FA image.
+    Parameters
+    ----------
+    img_orig : Nifti1Image class instance.
+        Contains encoding of the DEC FA image with a 4D volume of data, where
+        the elements on the last dimension represent R, G and B components.
+    scale: bool.
+        Whether to scale the incoming data from the 0-1 to the 0-255 range
+        expected in the output.
+    Returns
+    -------
+    img : Nifti1Image class instance with dtype set to store tuples of
+        uint8 in (R, G, B) order.
+    Notes
+    -----
+    For a description of this format, see:
+    https://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/datatype.html
+    """
+
+    dest_dtype = np.dtype([('R', 'uint8'), ('G', 'uint8'), ('B', 'uint8')])
+    out_data = np.zeros(img_orig.shape[:3], dtype=dest_dtype)
+
+    data_orig = img_orig.get_data()
+
+    if scale:
+        data_orig = (data_orig * 255).astype('uint8')
+
+    for ii in np.ndindex(img_orig.shape[:3]):
+        val = data_orig[ii]
+        out_data[ii] = (val[0], val[1], val[2])
+
+    new_hdr = img_orig.header
+    new_hdr['dim'][4] = 1
+    new_hdr.set_intent(1001, name='Color FA')
+    new_hdr.set_data_dtype(dest_dtype)
+    
+    return nib.Nifti1Image(out_data, affine=img_orig.affine, header=new_hdr)
+
+
 def compute_reconstruction(src_dmri_dir, subj_name):
 
-    src_dmri_file = os.path.join(src_dmri_dir, subj_name + par_iso_tag + ".nii.gz")
-    src_bval_file = src_dmri_dir +  [each for each in os.listdir(src_dmri_dir) if each.endswith('.bval')][0]
-    src_bvec_file = src_dmri_dir +  [each for each in os.listdir(src_dmri_dir) if each.endswith('.bvec')][0]
-
-    img = nib.load(src_dmri_file)
-    bvals = np.loadtxt(src_bval_file)
-    bvecs = np.loadtxt(src_bvec_file).T
-    data = img.get_data()
-    affine = img.get_affine()
-
-    gradients = gradient_table(bvals,bvecs)
-    tensor_model = dti.TensorModel(gradients)  
-    tensors = tensor_model.fit(data)
-    FA = dti.fractional_anisotropy(tensors.evals)
-    FA[np.isnan(FA)] = 0
-    Color_FA = np.array(255*(dti.color_fa(FA, tensors.evecs)),'uint8')
+    dwi =  os.path.join(src_dmri_dir, subj_name + par_iso_tag + ".nii.gz")
+    bval =  os.path.join(src_dmri_dir, subj_name + ".bval")
+    bvec =  os.path.join(src_dmri_dir, subj_name + ".bvec")
+    mask =  os.path.join(src_dmri_dir, subj_name + "_iso_mask.nii.gz")
+    seed =  os.path.join(src_dmri_dir, subj_name + "_seed.nii.gz")
+    fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
+    md =  os.path.join(src_dmri_dir, subj_name + "_md.nii.gz")
+    rgb =  os.path.join(src_dmri_dir, subj_name + "_rgb.nii.gz")
+    cfa =  os.path.join(src_dmri_dir, subj_name + "_cfa.nii.gz")
     
-    out_evecs_file = os.path.join(src_dmri_dir, subj_name + par_evecs_tag)
-    evecs_img = nib.Nifti1Image(tensors.evecs.astype(np.float32), affine)
-    nib.save(evecs_img, out_evecs_file)
+    cmd = "dipy_fit_dti --force --save_metrics fa md rgb --out_fa %s --out_md %s --out_rgb %s %s %s %s %s" % (fa, md, rgb, dwi, bval, bvec, mask)
+    pipe(cmd, print_sto=False, print_ste=False)
 
-    out_fa_file = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
-    fa_img = nib.Nifti1Image(FA.astype(np.float32), affine)
-    nib.save(fa_img, out_fa_file)
+    FA = nib.load(fa).get_data()
+    MD = nib.load(md).get_data()
+    affine = nib.load(fa).affine
+    WM = (np.logical_or(FA >= 0.4, (np.logical_and(FA >= 0.15, MD >= 0.0011))))
+    WM = WM.astype('uint16')
+    img_seed = nib.Nifti1Image(WM, affine)
+    nib.save(img_seed, seed)
 
-    out_cfa_file = os.path.join(src_dmri_dir, subj_name + par_cfa_tome_tag)
-    cfa_img = nib.Nifti1Image(Color_FA, affine)
-    nib.save(cfa_img, out_cfa_file)
-
-    dt = np.dtype([('R', 'u1'), ('G', 'u1'), ('B', 'u1')])
-    out_cfa_file = os.path.join(src_dmri_dir, subj_name + par_cfa_trkvis_tag)
-    cfa_img = nib.Nifti1Image((Color_FA.view((dt)).reshape(Color_FA.shape[:3])), affine)
-    nib.save(cfa_img, out_cfa_file)
+    RGB = nib.load(rgb)
+    fix_rgb = decfa(RGB)
+    nib.save(fix_rgb, cfa) 
 
 
-def compute_tracking(src_dti_dir, out_trk_dir, subj_name):
+def compute_dti_det_tracking(src_dmri_dir, out_trk_dir, subj_name):
 
-    # Loading FA and evecs data
-    src_fa_file = os.path.join(src_dti_dir, subj_name + par_fa_tag)
-    fa_img = nib.load(src_fa_file)
-    FA = fa_img.get_data()
-    affine = fa_img.get_affine()
+    dwi =  os.path.join(src_dmri_dir, subj_name + par_iso_tag + ".nii.gz")
+    bval =  os.path.join(src_dmri_dir, subj_name + ".bval")
+    bvec =  os.path.join(src_dmri_dir, subj_name + ".bvec")
+    mask =  os.path.join(src_dmri_dir, subj_name + "_seed.nii.gz")
+    fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
+    trk = os.path.join(out_trk_dir, subj_name + "_dti_det.trk")
 
-    src_evecs_file = os.path.join(src_dti_dir, subj_name + par_evecs_tag)
-    evecs_img = nib.load(src_evecs_file)
-    evecs = evecs_img.get_data()
-
-    # Computation of streamlines
-    sphere = get_sphere('symmetric724') 
-    peak_indices = dti.quantize_evecs(evecs, sphere.vertices)
-    streamlines = EuDX(FA.astype('f8'),
-                       ind=peak_indices, 
-                       seeds=par_eudx_seeds,
-                       odf_vertices= sphere.vertices,
-                       a_low=par_eudx_threshold)
-
-    # Saving tractography
-    voxel_size = fa_img.get_header().get_zooms()[:3]
-    dims = FA.shape[:3]
-    seed = '_' + par_eudx_tag
-
-    hdr = nib.trackvis.empty_header()
-    hdr['voxel_size'] = voxel_size
-    hdr['voxel_order'] = 'LAS'
-    hdr['dim'] = dims
-    hdr['vox_to_ras'] = affine
-    strm = ((sl, None, None) for sl in streamlines 
-            if length(sl) > par_trk_min and length(sl) < par_trk_max)
-    out_trk_file = os.path.join(out_trk_dir, subj_name + seed + par_trk_tag)
-    nib.trackvis.write(out_trk_file, strm, hdr, points_space='voxel')    
-
-    #tracks = [track for track in streamlines]
-    #out_dipy_file = os.path.join(out_trk_dir, subj_name + seed + par_dipy_tag)
-    #dpw = Dpy(out_dipy_file, 'w')
-    #dpw.write_tracks(tracks)
-    #dpw.close()
+    compute_dti_det_tracking(dwi, bval, bvec, mask, fa, trk)
 
 
-def tracking_eudx4csd(dir_src, dir_out, subj_name, verbose=False):
+def compute_csd(src_dmri_dir, out_dmri_dir, subj_name):
 
-    # Load data
-    fbval = dir_src +  [each for each in os.listdir(dir_src) if each.endswith('.bval')][0]
-    fbvec = dir_src +  [each for each in os.listdir(dir_src) if each.endswith('.bvec')][0]
+    dwi =  os.path.join(src_dmri_dir, subj_name + par_iso_tag + ".nii.gz")
+    bval =  os.path.join(src_dmri_dir, subj_name + ".bval")
+    bvec =  os.path.join(src_dmri_dir, subj_name + ".bvec")
+    mask =  os.path.join(src_dmri_dir, subj_name + "_iso_mask.nii.gz")
+    fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
+    pam =  os.path.join(src_dmri_dir, subj_name + "_csd.pam5")
 
-    #fbval = os.path.join(dir_src, subj_name + '.bval')
-    #fbvec = os.path.join(dir_src, subj_name + '.bvec')
-    fdwi =  os.path.join(dir_src, subj_name + par_iso_tag + ".nii.gz")
-    #fmask = pjoin(dir_src, 'nodif_brain_mask_' + par_dim_tag + '.nii.gz')
-    #fmask = pjoin(dir_src, 'wm_mask_' + par_b_tag + '_' + par_dim_tag + '.nii.gz')
+    cmd = 'dipy_fit_csd --force -out_pam %s %s %s %s %s' % \
+          (pam, dwi, bval, bvec, mask)
+    pipe(cmd, print_sto=False, print_ste=False)
 
-    bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
-    gtab = gradient_table(bvals, bvecs)
-    img = nib.load(fdwi)
-    data = img.get_data()
-    affine = img.get_affine()
-    voxel_size =  img.get_header().get_zooms()[:3]
-    dims = data.shape[:3]
-    #data, affine = load_nifti(fdwi, verbose)
-    #mask, _ = load_nifti(fmask, verbose)
 
-    sphere = get_sphere('symmetric724') 
 
-    response, ratio = auto_response(gtab, data, roi_radius=par_ar_radius, 
-                                    fa_thr=par_ar_fa_th)
-    # print('Response function', response)
+def compute_csd_det_tracking(src_dmri_dir, out_trk_dir, subj_name):
 
-    # Model fitting
-    csd_model = ConstrainedSphericalDeconvModel(gtab, response)
-    csd_peaks = peaks_from_model(csd_model, 
-                                 data, 
-                                 sphere,
-                                 relative_peak_threshold=par_csd_peak,
-                                 min_separation_angle=par_csd_angle,
-                                 parallel=False)
+    seed =  os.path.join(src_dmri_dir, subj_name + "_seed.nii.gz")
+    md = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
+    fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
+    pam =  os.path.join(src_dmri_dir, subj_name + "_csd.pam5")
+    trk = os.path.join(out_trk_dir, subj_name + "_csd_det.trk")
 
-    # Computation of streamlines
-    streamlines = EuDX(csd_peaks.peak_values,
-                       csd_peaks.peak_indices, 
-                       seeds=par_eudx_seeds,
-                       odf_vertices= sphere.vertices,
-                       a_low=par_eudx_threshold)
+    cmd = 'dipy_track_local --force %s %s %s --tracking_method det --seed_density 1 --out_tractogram %s' % \
+          (pam, fa, seed, trk)
+    pipe(cmd, print_sto=False, print_ste=False)
 
-    # Saving tractography
-    hdr = nib.trackvis.empty_header()
-    hdr['voxel_size'] = voxel_size
-    hdr['voxel_order'] = 'LAS'
-    hdr['dim'] = dims
-    hdr['vox_to_ras'] = affine
-    strm = ((sl, None, None) for sl in streamlines)
-    trk_name = subj_name + '_' + par_csd_tag + '_' + par_eudx_tag + '.trk'
-    trk_out = os.path.join(dir_out, trk_name)
-    nib.trackvis.write(trk_out, strm, hdr, points_space='voxel')    
+    img = nib.load(fa)
+    header = nib.streamlines.trk.TrkFile.create_empty_header()
+    header['voxel_to_rasmm'] = img.affine.copy()
+    header['voxel_sizes'] = img.header.get_zooms()[:3]
+    header['dimensions'] = img.shape[:3]
+    header['voxel_order'] = "".join(aff2axcodes(img.affine))
+
+    tract = nib.streamlines.load(trk)
+    min_length = 20.
+    max_length = 250.
+    streamlines_clean = []
+    for s_src in tract.streamlines:
+        s_length = list(length([s_src]))[0]
+        if (s_length > min_length) and (s_length < max_length):
+            streamlines_clean.append(s_src)
+
+    fix_streamlines = transform_streamlines(streamlines_clean, \
+                                            np.linalg.inv(img.affine))
+    tractogram = nib.streamlines.Tractogram(fix_streamlines, \
+                                            affine_to_rasmm=img.affine)
+    nib.streamlines.save(tractogram, trk, header=header)
+
+
+def compute_csd_prob_tracking(src_dmri_dir, out_trk_dir, subj_name):
+
+    seed =  os.path.join(src_dmri_dir, subj_name + "_seed.nii.gz")
+    fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
+    pam =  os.path.join(src_dmri_dir, subj_name + "_csd.pam5")
+    trk = os.path.join(out_trk_dir, subj_name + "_csd_prob.trk")
+
+    cmd = 'dipy_track_local --force %s %s %s --tracking_method prob --seed_density 1 --out_tractogram %s' % \
+          (pam, fa, seed, trk)
+    pipe(cmd, print_sto=False, print_ste=False)
+
+    img = nib.load(fa)
+    header = nib.streamlines.trk.TrkFile.create_empty_header()
+    header['voxel_to_rasmm'] = img.affine.copy()
+    header['voxel_sizes'] = img.header.get_zooms()[:3]
+    header['dimensions'] = img.shape[:3]
+    header['voxel_order'] = "".join(aff2axcodes(img.affine))
+
+    tract = nib.streamlines.load(trk)
+    min_length = 20.
+    max_length = 250.
+    streamlines_clean = []
+    for s_src in tract.streamlines:
+        s_length = list(length([s_src]))[0]
+        if (s_length > min_length) and (s_length < max_length):
+            streamlines_clean.append(s_src)
+
+    fix_streamlines = transform_streamlines(streamlines_clean, \
+                                            np.linalg.inv(img.affine))
+    tractogram = nib.streamlines.Tractogram(fix_streamlines, \
+                                            affine_to_rasmm=img.affine)
+    nib.streamlines.save(tractogram, trk, header=header)
 
 
 def tractome_preprocessing(src_trk_dir, subj_name):
 
-    seeds = par_eudx_seeds
-    par2fun={par_prototype_distance:bundles_distances_mam}
-    prototype_distance=par2fun[par_prototype_distance]
-    trk_basename = "%s_%s%s" % (subj_name,
-                                par_eudx_tag,
-                                par_trk_tag)
-    spa_basename = os.path.splitext(trk_basename)[0] + '.spa'
-    src_trk_file = os.path.join(src_trk_dir, trk_basename)
-    out_spa_dir = os.path.join(src_trk_dir, '.temp')
-    if not os.path.exists(out_spa_dir):
-        os.makedirs(out_spa_dir)
-    out_spa_file = os.path.join(out_spa_dir, spa_basename)
+    trk1 = subj_name + "_dti_det.trk"
+    trk2 = subj_name + "_csd_det.trk"
+    trk3 = subj_name + "_csd_prob.trk"
+    
+    for trk in (trk1, trk2, trk3):
+        src_trk_file = os.path.join(src_trk_dir, trk)
+        if os.path.exists(src_trk_file):
+            spa_basename = os.path.splitext(trk_basename)[0] + '.spa'
+            src_trk_file = os.path.join(src_trk_dir, trk_basename)
+            out_spa_dir = os.path.join(src_trk_dir, '.temp')
+            if not os.path.exists(out_spa_dir):
+                os.makedirs(out_spa_dir)
+            out_spa_file = os.path.join(out_spa_dir, spa_basename)
 
-    streams, hdr = nib.trackvis.read(src_trk_file, points_space='voxel')
-    streamlines =  np.array([s[0] for s in streams], dtype=np.object)
-    dissimilarity_matrix = compute_dissimilarity(streamlines, 
-            prototype_distance, par_prototype_policy, par_prototype_num)
-
-    info = {'dismatrix':dissimilarity_matrix,'nprot':par_prototype_num}
-    pickle.dump(info, open(out_spa_file,'w+'), protocol=pickle.HIGHEST_PROTOCOL)
+            tract = nib.streamlines.load(src_trk_file)
+            dissimilarity_matrix = compute_dissimilarity(tract.streamlines,  prototype_distance, par_prototype_policy, par_prototype_num)
+            
+            info = {'dismatrix':dissimilarity_matrix, \
+                    'nprot':par_prototype_num}
+            pickle.dump(info, open(out_spa_file,'w+'), \
+                        protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def roi_registration(src_ref_dir, out_roi_dir, subj_name):
