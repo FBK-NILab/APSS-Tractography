@@ -31,8 +31,6 @@ from nibabel.orientations import aff2axcodes
 from dipy.tracking.streamline import transform_streamlines
 from dipy.tracking.utils import length
 from compute_dti_det_tracking import compute_dti_det_tracking
-from compute_csd_det_tracking import compute_csd_det_tracking
-from compute_csd_prob_tracking import compute_csd_prob_tracking
 
 
 def load_nifti(fname, verbose=False):
