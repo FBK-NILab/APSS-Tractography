@@ -38,17 +38,17 @@ do_step = [1] * 13
 
 def run_pipeline():
 
-    print "*** BEGINNING OF PIPELINE COMPUTATION ***"
+    print("*** BEGINNING OF PIPELINE COMPUTATION ***")
 
     if not os.path.isdir(main_data_directory):
-        print "FAIL: setting parameters - FILE: data directory not found!"
+        print("FAIL: setting parameters - FILE: data directory not found!")
         sys.exit()
 
     subj = os.path.basename(main_data_directory)
     step = 0
 
-    print "Subject: ", subj
-    print "Step %i: Setting parameters....." % step
+    print("Subject: " % subj)
+    print("Step %i: Setting parameters....." % step)
 
     ## Directory of DICOM files
 
@@ -98,140 +98,140 @@ def run_pipeline():
     if not os.path.exists(dir_trk_roi):
         os.makedirs(dir_trk_roi)
 
-    print "DONE!"
+    print("DONE!")
     step += 1
     
     ## Preprocessing of Structural MRI data
 
-    print "Step %i: Converting Structural DICOM files to Nifti..." % step
+    print("Step %i: Converting Structural DICOM files to Nifti..." % step)
     if do_step[step]:
         dicom_to_nifti(dir_dicom_mri, dir_nii_mri, subj, par_mri_tag)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Brain extraction of structural data..." % step
+    print("Step %i: Brain extraction of structural data..." % step)
     if do_step[step]:
         brain_extraction(dir_nii_mri, dir_mri_pre, subj, par_mri_tag)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
     ## Preprocessing of Diffusion MRI data
 
-    print "Step %i: Converting Diffusion DICOM files to Nifti..." % step
+    print("Step %i: Converting Diffusion DICOM files to Nifti..." % step)
     if do_step[step]:
         dicom_to_nifti(dir_dicom_dmri, dir_nii_dmri, subj, par_dmri_tag)
-        print 'DONE!'
+        print('DONE!')
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Brain extraction of diffusion data..." % step
+    print("Step %i: Brain extraction of diffusion data..." % step)
     if do_step[step]:
         brain_extraction(dir_nii_dmri, dir_dmri_pre, subj, par_dmri_tag)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Eddy current correction of diffusion data..." % step
+    print("Step %i: Eddy current correction of diffusion data..." % step)
     if do_step[step]:
         eddy_current_correction(dir_dmri_pre, dir_dmri_pre, subj)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Rescaling isotropic voxels..." % step
+    print("Step %i: Rescaling isotropic voxels..." % step)
     if do_step[step]:
         rescaling_isotropic_voxel(dir_dmri_pre, dir_nii_dmri, subj)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Registration of structural data..." % step
+    print("Step %i: Registration of structural data..." % step)
     if do_step[step]:
         flirt_registration(dir_mri_pre, dir_nii_dmri, dir_nii_mri, dir_mri_pre,subj)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Registration of atlas..." % step
+    print("Step %i: Registration of atlas..." % step)
     if do_step[step]:
         atlas_registration(dir_nii_dmri, dir_nii_dmri, dir_dmri_pre, subj)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Reconstruction of tensor model..." % step
+    print("Step %i: Reconstruction of tensor model..." % step)
     if do_step[step]:
         compute_reconstruction(dir_nii_dmri, subj)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Tracking of streamlines..." % step
+    print("Step %i: Tracking of streamlines..." % step)
     if do_step[step]:
         compute_tracking(dir_nii_dmri, dir_trk_tractography, subj)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: Tractome preprocessing..." % step
+    print("Step %i: Tractome preprocessing..." % step)
     if do_step[step]:
         tractome_preprocessing(dir_trk_tractography, subj)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "Step %i: ROI Registration..." % step
+    print("Step %i: ROI Registration..." % step)
     if do_step[step]:
         roi_registration(dir_nii_dmri, dir_trk_roi, subj)
-        print "DONE!"
+        print("DONE!")
     else:
-        print "Skipped."
+        print("Skipped.")
     step += 1
 
-    print "*** END OF PIPELINE ***"
+    print("*** END OF PIPELINE ***")
 
 
 if __name__ == '__main__':
     
     for arg in sys.argv[1:]:
         if arg == '-h':
-            print "Usage:"
-            print "   pipeline.py <args>* "
-            print "Arguments:"
-            print "   path: <pathname>"
-            print "         Data file directory"
-            print "   step: 'number number ...'"
-            print "         1. Structural Dicom to nifti"
-            print "         2. Structural brain extraction"
-            print "         3. Diffusion DICOM to nifti"
-            print "         4. Diffusion brain extraction"
-            print "         5. Eddy current correction"
-            print "         6. Rescaling isotropic voxel"
-            print "         7. Registration of structural data"
-            print "         8. Registration of atlas"
-            print "         9. Reconstruction of tensor model"
-            print "         10. Tracking of streamlines"
-            print "         11. Tractome preprocessing"
-            print "         12. Registration of ROI from atlas"
-            print "   help: -h"
-            print "         this help"
-            print "Examples:"
-            print "   pipeline.py /path/to/my/data"
-            print "   pipeline.py /path/to/my/data '1 2 7'"
-            print "   pipeline.py '1 2 7'"
+            print("Usage:")
+            print("   pipeline.py <args>* ")
+            print("Arguments:")
+            print("   path: <pathname>")
+            print("         Data file directory")
+            print("   step: 'number number ...'")
+            print("         1. Structural Dicom to nifti")
+            print("         2. Structural brain extraction")
+            print("         3. Diffusion DICOM to nifti")
+            print("         4. Diffusion brain extraction")
+            print("         5. Eddy current correction")
+            print("         6. Rescaling isotropic voxel")
+            print("         7. Registration of structural data")
+            print("         8. Registration of atlas")
+            print("         9. Reconstruction of tensor model")
+            print("         10. Tracking of streamlines")
+            print("         11. Tractome preprocessing")
+            print("         12. Registration of ROI from atlas")
+            print("   help: -h")
+            print("         this help")
+            print("Examples:")
+            print("   pipeline.py /path/to/my/data")
+            print("   pipeline.py /path/to/my/data '1 2 7'")
+            print("   pipeline.py '1 2 7'")
             sys.exit()
 
         if not os.path.isdir(arg):

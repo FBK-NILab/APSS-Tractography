@@ -17,7 +17,7 @@ import nibabel as nib
 from subprocess import Popen, PIPE
 import dipy.reconst.dti as dti
 from dipy.reconst.csdeconv import ConstrainedSphericalDeconvModel, auto_response
-from dipy.align.aniso2iso import resample
+from dipy.align.reslice import reslice
 from dipy.core.gradients import gradient_table
 from dipy.io.dpy import Dpy
 from dipy.data import get_sphere
@@ -69,7 +69,7 @@ def dicom_to_nifti(src_dir, out_dir, subj_name, tag, opt=par_dcm2nii_options):
         glob.glob(os.path.join(src_dir, '*.dcm'))[0]
         
     except IndexError:
-        print "FAIL: dcm2nii - FILE: *.dcm not found"
+        print("FAIL: dcm2nii - FILE: *.dcm not found")
         sys.exit()
  
     cmd = 'dcm2nii ' + opt + ' ' + out_dir + ' ' + src_dir
@@ -113,7 +113,7 @@ def brain_extraction(src_bet, out_dir, subj_name, tag):
         cmd = 'bet ' + src_bet_file + ' ' + out_bet_file + par_bet_options
         pipe(cmd, print_sto=False, print_ste=False)
     except:
-        print "FAIL: bet - File: %s" % src_bet_file
+        print("FAIL: bet - File: %s" % src_bet_file)
         sys.exit()
 
 
@@ -127,7 +127,7 @@ def eddy_current_correction(src_ecc_dir, out_ecc_dir, subj_name):
                   ' ' + str(par_ecc_ref)
             pipe(cmd, print_sto=False, print_ste=False)
     except:
-        print "FAIL: eddy_correct - File: %s" % src_ecc_file
+        print("FAIL: eddy_correct - File: %s" % src_ecc_file)
         sys.exit()
 
 
@@ -142,11 +142,11 @@ def rescaling_isotropic_voxel(src_iso_dir, out_iso_dir, subj_name):
             src_affine = src_img.get_affine()
         src_iso_size = src_img.get_header().get_zooms()[:3]
         out_iso_size = par_iso_voxel_size
-        data, affine = resample(src_data, src_affine, src_iso_size,out_iso_size)
+        data, affine = reslice(src_data, src_affine, src_iso_size,out_iso_size)
         data_img = nib.Nifti1Image(data, affine)
         nib.save(data_img, out_iso_file)
     except:
-        print "FAIL: isotropic rescaling - File: %s" % src_iso_file
+        print("FAIL: isotropic rescaling - File: %s" % src_iso_file)
         exit
 
 
@@ -167,7 +167,7 @@ def atlas_registration(ref_flirt_dir, out_flirt_dir, aff_flirt_dir, subj_name):
             for dirpath, dirnames, files in os.walk(fsl_dir, followlinks=True)
             for f in files if f.endswith(par_atlas_file)][0]
     except IndexError:
-        print "FAIL: atlas file not found - File: %s" % par_atlas_file
+        print("FAIL: atlas file not found - File: %s" % par_atlas_file)
         sys.exit()
 
     ref_flirt_file = os.path.join(ref_flirt_dir, subj_name + par_iso_suffix)
@@ -288,7 +288,7 @@ def roi_registration(src_fa_dir, out_roi_dir, subj_name):
     # Compute the affine from atlas
     src_atlas = os.path.join(par_atlas_dir, par_atlas_file)
     if not os.path.exists(src_atlas):
-        print 'Atlas not found: %s' % src_atlas
+        print('Atlas not found: %s' % src_atlas)
         return
 
     src_fa = os.path.join(src_fa_dir, subj_name + par_fa_suffix)
@@ -298,7 +298,7 @@ def roi_registration(src_fa_dir, out_roi_dir, subj_name):
 
     # Apply the affine to all ROIs
     if not os.path.exists(par_roi_dir):
-        print 'Pathname for ROI not found: %s' % par_roi_dir
+        print('Pathname for ROI not found: %s' % par_roi_dir)
         return
 
     all_roi = [f for f in os.listdir(par_roi_dir) if f.endswith('.nii')]

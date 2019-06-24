@@ -70,15 +70,15 @@ def compute_dissimilarity(data, distance, prototype_policy, num_prototypes, verb
     """Compute dissimilarity matrix given data, distance,
     prototype_policy and number of prototypes.
     """
-    # print "Computing dissimilarity data for the original data:",
+    # print "Computing dissimilarity data for the original data:"
     data_original = data
     num_proto = num_prototypes
     if data.shape[0] > size_limit:
-        print
-        print "Datset too big: subsampling to %s entries only!" % size_limit
+        print("")
+        print("Dataset too big: subsampling to %s entries only!" % size_limit)
         data = data[np.random.permutation(data.shape[0])[:size_limit], :]
     
-    # print prototype_policy    
+    # print prototype_policy
     # print "number of prototypes:", num_proto
     stdout.flush()
     if verbose: print("Generating %s prototypes as" % num_proto),
