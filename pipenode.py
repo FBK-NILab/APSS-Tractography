@@ -351,7 +351,7 @@ def compute_csd_det_tracking(src_dmri_dir, out_trk_dir, subj_name):
     trk = os.path.join(out_trk_dir, subj_name + "_csd_det.trk")
 
     cmd = 'dipy_track_local --force %s %s %s --tracking_method det --seed_density 1 --out_tractogram %s' % \
-          (pam, fa, seed, trk)
+          (pam, seed, seed, trk)
     pipe(cmd, print_sto=False, print_ste=False)
 
     img = nib.load(fa)
