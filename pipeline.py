@@ -49,7 +49,7 @@ def run_pipeline():
     subj = os.path.basename(main_data_directory)
     step = 0
 
-    print("Subject: " % subj)
+    print("Subject: %s" % subj)
     print("Step %i: Setting parameters....." % step)
 
     ## Directory of DICOM files
