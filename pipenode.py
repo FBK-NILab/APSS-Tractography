@@ -336,7 +336,7 @@ def compute_csd(src_dmri_dir, out_dmri_dir, subj_name):
     fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
     pam =  os.path.join(src_dmri_dir, subj_name + "_csd.pam5")
 
-    cmd = 'dipy_fit_csd --force -out_pam %s %s %s %s %s' % \
+    cmd = 'dipy_fit_csd --force --out_pam %s %s %s %s %s' % \
           (pam, dwi, bval, bvec, mask)
     pipe(cmd, print_sto=True, print_ste=True)
 
