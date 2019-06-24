@@ -338,7 +338,7 @@ def compute_csd(src_dmri_dir, out_dmri_dir, subj_name):
 
     cmd = 'dipy_fit_csd --force -out_pam %s %s %s %s %s' % \
           (pam, dwi, bval, bvec, mask)
-    pipe(cmd, print_sto=False, print_ste=False)
+    pipe(cmd, print_sto=True, print_ste=True)
 
 
 
