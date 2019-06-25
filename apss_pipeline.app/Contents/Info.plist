@@ -7,31 +7,14 @@
   <key>CFBundleExecutable</key>
   <string>apss_pipeline</string>
   <key>CFBundleInfoDictionaryVersion</key>
-  <string>6.0</string>
+  <string>APSS_Pipeline</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleSignature</key>
   <string>????</string>
   <key>CFBundleVersion</key>
   <string>1.0</string>
-  <key>CSResourcesFileMapped</key>
-  <true/>
- <key>CFBundleIconFile</key>
- <string>apss_pipeline.icns</string>
-  <key>CFBundleDocumentTypes</key>
-  <array>
-    <dict>
-      <key>CFBundleTypeRole</key>
-      <string>Viewer</string>
-      <key>CFBundleTypeExtension</key>
-      <string>*</string>
-      <key>CFBundleTypeOSTypes</key>
-      <array>
-        <string>fold</string>
-        <string>disk</string>
-        <string>****</string>
-      </array>
-    </dict>
-  </array>
+  <key>CFBundleIconFile</key>
+  <string>apss_pipeline.icns</string>
 </dict>
 </plist>
