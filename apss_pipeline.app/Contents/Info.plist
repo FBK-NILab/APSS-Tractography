@@ -17,7 +17,7 @@
   <key>CSResourcesFileMapped</key>
   <true/>
  <key>CFBundleIconFile</key>
- <string>apss-pipeline.icns</string>
+ <string>apss_pipeline.icns</string>
   <key>CFBundleDocumentTypes</key>
   <array>
     <dict>
