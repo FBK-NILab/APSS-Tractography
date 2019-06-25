@@ -38,7 +38,7 @@ max_step = 16
 do_step = [1] * max_step
 
 
-def run_pipeline():
+def run_pipeline(main_data_directory, do_step):
 
     print("*** BEGINNING OF PIPELINE COMPUTATION ***")
 
@@ -272,6 +272,6 @@ if __name__ == '__main__':
         if os.path.isdir(arg):
              main_data_directory = os.path.abspath(sys.argv[1])
 
-    run_pipeline()
+    run_pipeline(main_data_directory, do_step)
 
 
