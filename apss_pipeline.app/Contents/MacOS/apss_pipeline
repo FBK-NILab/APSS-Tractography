@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source ${HOME}/.bash_profile
+
 BASEDIR=$(dirname "$(dirname "$0")")
 PYTHONDIR=${BASEDIR}/Resources
 
