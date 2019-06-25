@@ -90,7 +90,7 @@ textbox.insert(INSERT, "Selected steps:\n")
 for i in range(15):
     step_num = "   %d. " % (1 + i)
     textbox.insert(INSERT, step_num)
-    if do_step[i]:
+    if do_step[i+1]:
         step_cmd = step_label[i].split()
         textbox.insert(INSERT, " ".join(step_cmd[1:]))
     textbox.insert(INSERT, "\n")
