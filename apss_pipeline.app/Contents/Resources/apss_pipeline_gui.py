@@ -8,7 +8,8 @@ from tkinter.messagebox import showinfo
 from tkinter.scrolledtext import ScrolledText
 from pipeline import run_pipeline
 
-do_step = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+max_step = 16
+do_step = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 main_data_directory = ''
 
 step_var = []
@@ -47,7 +48,7 @@ def cb_sel(v):
 
 def cb_ok():
     for i in range(15):
-        do_step[i] = step_var[i].get()
+        do_step[i+1] = step_var[i].get()
     win.destroy()
 
 for i in range(15):
@@ -67,7 +68,6 @@ button_lab = 'START'
 
 def run():
     if button_txt.get() == 'QUIT':
-        time.sleep(30)
         sys.exit()
     else:
         button_txt.set("QUIT")
