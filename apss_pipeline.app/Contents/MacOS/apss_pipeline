@@ -1,16 +1,8 @@
 #!/usr/bin/env bash
 
-#conda activate apss2019pipeline
+BASEDIR=$(dirname "$(dirname "$0")")
+PYTHONDIR=${BASEDIR}/Resources
 
-BASEDIR=$(dirname "$0")
-PYTHONDIR=${BASEDIR}/../Resources
+export PYTHONPATH=${PYTHONDIR}:$PYTHONPATH
 
-#export PATH=/Users/paolo/Software/miniconda3/bin:$PATH
-#export PATH=/Users/silviosarubbo/CLINT/Software/miniconda3/bin:$PATH
-export PYTHONPATH=${BASEDIR}:PYTHONPATH
-
-${BASEDIR}/../Resources/apss_pipeline_gui.py
-
-#cd ${BASEDIR}/../../..
-#ROOTDIR=`pwd`
-#python ${ROOTDIR}/pipeline.app/Contents/MacOS/pipeline-gui
+${BASEDIR}/Resources/apss_pipeline_gui.py
