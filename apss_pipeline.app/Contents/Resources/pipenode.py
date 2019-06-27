@@ -413,15 +413,17 @@ def tractome_preprocessing(src_trk_dir, subj_name):
     for trk in (trk1, trk2, trk3):
         src_trk_file = os.path.join(src_trk_dir, trk)
         if os.path.exists(src_trk_file):
-            spa_basename = os.path.splitext(trk_basename)[0] + '.spa'
-            src_trk_file = os.path.join(src_trk_dir, trk_basename)
+            spa_basename = os.path.splitext(os.path.basename(trk))[0] + '.spa'
             out_spa_dir = os.path.join(src_trk_dir, '.temp')
             if not os.path.exists(out_spa_dir):
                 os.makedirs(out_spa_dir)
             out_spa_file = os.path.join(out_spa_dir, spa_basename)
 
             tract = nib.streamlines.load(src_trk_file)
-            dissimilarity_matrix = compute_dissimilarity(tract.streamlines,  prototype_distance, par_prototype_policy, par_prototype_num)
+            dissimilarity_matrix = compute_dissimilarity(tract.streamlines, \
+                                                         par_prototype_distance, \
+                                                         par_prototype_policy, \
+                                                         par_prototype_num)
             
             info = {'dismatrix':dissimilarity_matrix, \
                     'nprot':par_prototype_num}
