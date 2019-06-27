@@ -411,6 +411,7 @@ def tractome_preprocessing(src_trk_dir, subj_name):
     trk3 = subj_name + "_csd_prob.trk"
     
     for trk in (trk1, trk2, trk3):
+        print("Preprocessing of %s..." % trk)
         src_trk_file = os.path.join(src_trk_dir, trk)
         if os.path.exists(src_trk_file):
             spa_basename = os.path.splitext(os.path.basename(trk))[0] + '.spa'
@@ -427,6 +428,7 @@ def tractome_preprocessing(src_trk_dir, subj_name):
             
             info = {'dismatrix':dissimilarity_matrix, \
                     'nprot':par_prototype_num}
+            print("...saving\n")
             pickle.dump(info, open(out_spa_file,'w+'), \
                         protocol=pickle.HIGHEST_PROTOCOL)
 
