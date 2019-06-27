@@ -36,7 +36,7 @@ def furthest_first_traversal(S, k, distance, permutation=True):
         idx = np.random.permutation(S_size)
         S = S[idx]       
     else:
-        idx = np.arange(S.shape[0], dtype=np.int)
+        idx = np.arange(S_size, dtype=np.int)
     T = [0]
     while len(T) < k:
         z = distance(S, S[T]).min(1).argmax()
