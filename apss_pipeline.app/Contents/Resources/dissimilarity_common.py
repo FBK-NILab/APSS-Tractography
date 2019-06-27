@@ -72,11 +72,12 @@ def compute_dissimilarity(data, distance, prototype_policy, num_prototypes, verb
     """
     # print "Computing dissimilarity data for the original data:"
     data_original = data
+    data_size = len(data)
     num_proto = num_prototypes
-    if len(data) > size_limit:
+    if data_size > size_limit:
         print("")
         print("Dataset too big: subsampling to %s entries only!" % size_limit)
-        data = data[np.random.permutation(data.shape[0])[:size_limit], :]
+        data = data[np.random.permutation(data_size)[:size_limit], :]
     
     # print prototype_policy
     # print "number of prototypes:", num_proto
@@ -85,7 +86,7 @@ def compute_dissimilarity(data, distance, prototype_policy, num_prototypes, verb
     # Note that we use the original dataset here, not the subsampled one!
     if prototype_policy=='random':
         if verbose: print("random subset of the initial data.")
-        prototype_idx = np.random.permutation(data_original.shape[0])[:num_proto]
+        prototype_idx = np.random.permutation(data_size)[:num_proto]
         prototype = [data_original[i] for i in prototype_idx]
     elif prototype_policy=='fft':
         prototype_idx = furthest_first_traversal(data_original, num_proto, distance)
@@ -103,7 +104,7 @@ def compute_dissimilarity(data, distance, prototype_policy, num_prototypes, verb
 
         # print("Parallel computation of the dissimilarity matrix: %s cpus." % n_jobs)
         if n_jobs > 1:
-            tmp = np.linspace(0, data.shape[0], n_jobs).astype(np.int)
+            tmp = np.linspace(0, data_size, n_jobs).astype(np.int)
         else: # corner case: joblib detected 1 cpu only.
             tmp = (0, data.shape[0])
 
