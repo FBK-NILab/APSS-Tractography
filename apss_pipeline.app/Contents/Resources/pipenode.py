@@ -343,7 +343,7 @@ def compute_csd_det_tracking(src_dmri_dir, out_trk_dir, subj_name):
     pam =  os.path.join(src_dmri_dir, subj_name + "_csd.pam5")
     trk = os.path.join(out_trk_dir, subj_name + "_csd_det.trk")
 
-    cmd = 'dipy_track_local --force %s %s %s --tracking_method det --seed_density 1 --out_tractogram %s' % \
+    cmd = 'dipy_track_local --force %s %s %s --tracking_method det --seed_density 2 --out_tractogram %s' % \
           (pam, seed, seed, trk)
     pipe(cmd, print_sto=False, print_ste=False)
 
@@ -377,7 +377,7 @@ def compute_csd_prob_tracking(src_dmri_dir, out_trk_dir, subj_name):
     pam =  os.path.join(src_dmri_dir, subj_name + "_csd.pam5")
     trk = os.path.join(out_trk_dir, subj_name + "_csd_prob.trk")
 
-    cmd = 'dipy_track_local --force %s %s %s --tracking_method prob --seed_density 1 --out_tractogram %s' % \
+    cmd = 'dipy_track_local --force %s %s %s --tracking_method prob --seed_density 2 --out_tractogram %s' % \
           (pam, fa, seed, trk)
     pipe(cmd, print_sto=False, print_ste=False)
 
@@ -430,7 +430,7 @@ def tractome_preprocessing(src_trk_dir, subj_name):
             info = {'dismatrix':dissimilarity_matrix, \
                     'nprot':par_prototype_num}
             print("...saving\n")
-            pickle.dump(info, open(out_spa_file,'w+'), \
+            pickle.dump(info, open(out_spa_file,'wb+'), \
                         protocol=pickle.HIGHEST_PROTOCOL)
 
 
