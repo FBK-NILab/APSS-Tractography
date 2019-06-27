@@ -148,35 +148,33 @@ def eddy_current_correction(src_ecc_dir, out_ecc_dir, subj_name):
 def rescaling_isotropic_voxel(src_ecc_dir, out_iso_dir, subj_name):
 
     tmp_iso_tag = "_iso_nomask.nii.gz"
+    src_dwi_tag = "_" + par_dmri_tag + ".nii.gz"
     src_ecc_file = os.path.join(src_ecc_dir, subj_name + par_ecc_tag)
-    tmp_iso_file = os.path.join(out_iso_dir, subj_name + tmp_iso_tag)
+    src_dwi_file = os.path.join(out_iso_dir, subj_name + src_dwi_tag)
+    tmp_iso_file = os.path.join(src_ecc_dir, subj_name + tmp_iso_tag)
 
-    try:
-        if src_ecc_file is not None:
-            src_img = nib.load(src_ecc_file)
-            src_data = src_img.get_data()
-            src_affine = src_img.get_affine()
-        src_ecc_size = src_img.get_header().get_zooms()[:3]
-        out_iso_size = par_iso_voxel_size
-        data, affine = reslice(src_data, src_affine, src_ecc_size,out_iso_size)
-        data_img = nib.Nifti1Image(data, affine)
-        nib.save(data_img, tmp_iso_file)
+    if os.path.exists(src_ecc_file):
+        src_img = nib.load(src_ecc_file)
+    else:
+        src_img = nib.load(src_dwi_file)
 
-    except:
-        print("FAIL: isotropic rescaling of dmri - File: %s" % src_ecc_file)
-        exit
+    src_data = src_img.get_data()
+    src_affine = src_img.affine
+    src_ecc_size = src_img.get_header().get_zooms()[:3]
+    out_iso_size = par_iso_voxel_size
+    data, affine = reslice(src_data, src_affine, src_ecc_size,out_iso_size)
+    data_img = nib.Nifti1Image(data, affine)
+    nib.save(data_img, tmp_iso_file)
 
-    tmp_mask_tag = "_iso_mask.nii.gz"
+    iso_mask_tag = "_iso_mask.nii.gz"
     bet_mask_tag = "_bet_mask.nii.gz"
-    src_mask_dir = os.path.join(src_iso_dir)
-    src_mask_file = os.path.join(src_mask_dir, subj_name + bet_mask_tag)
-    out_mask_file = os.path.join(src_mask_dir, subj_name + tmp_mask_tag)
+    src_mask_file = os.path.join(src_ecc_dir, subj_name + bet_mask_tag)
+    out_mask_file = os.path.join(out_iso_dir, subj_name + tmp_mask_tag)
 
-    try:
-        if src_mask_file is not None:
-            src_img = nib.load(src_mask_file)
-            src_data = src_img.get_data()
-            src_affine = src_img.get_affine()
+    if os.path.exists(src_mask_file):
+        src_img = nib.load(src_mask_file)
+        src_data = src_img.get_data()
+        src_affine = src_img.affine
         src_mask_size = src_img.get_header().get_zooms()[:3]
         out_iso_size = par_iso_voxel_size
         data, affine = reslice(src_data, src_affine, src_mask_size, out_iso_size, mode="nearest")
@@ -184,33 +182,28 @@ def rescaling_isotropic_voxel(src_ecc_dir, out_iso_dir, subj_name):
         nib.save(data_img, out_mask_file)
         fix_wm_mask(out_mask_file, out_mask_file)
 
-    except:
-        print("FAIL: isotropic rescaling of mask - File: %s" % src_mask_file)
-        exit
-
+    out_iso_file = os.path.join(out_iso_dir, \
+                                subj_name + par_iso_tag + ".nii.gz")
+    fslmaths_cmd = "fslmaths " + tmp_iso_file \
+                   + " -mas " + out_mask_file + " " + out_iso_file
+    pipe(fslmaths_cmd)
 
     src_bet_dir = os.path.join(src_ecc_dir, "../../Structural/Preprocess")
-    src_bet_file = os.path.join(src_bet_dir, subj_name + par_bet_tag + ".nii.gz")
-    out_bet_file = os.path.join(src_bet_dir, subj_name + par_bet_tag + par_iso_tag + ".nii.gz")
+    src_bet_file = os.path.join(src_bet_dir, \
+                                subj_name + par_bet_tag + ".nii.gz")
+    out_bet_file = os.path.join(src_bet_dir, \
+                                subj_name + par_bet_tag + par_iso_tag + ".nii.gz")
 
-    try:
-        if src_bet_file is not None:
-            src_img = nib.load(src_bet_file)
-            src_data = src_img.get_data()
-            src_affine = src_img.get_affine()
+    if os.path.exists(src_bet_file):
+        src_img = nib.load(src_bet_file)
+        src_data = src_img.get_data()
+        src_affine = src_img.get_affine()
         src_bet_size = src_img.get_header().get_zooms()[:3]
         out_iso_size = par_iso_voxel_size
         data, affine = reslice(src_data, src_affine, src_bet_size, out_iso_size)
         data_img = nib.Nifti1Image(data, affine)
         nib.save(data_img, out_bet_file)
 
-    except:
-        print("FAIL: isotropic rescaling of structural - File: %s" % src_bet_file)
-        exit
-
-    out_iso_file = os.path.join(out_iso_dir, subj_name + par_iso_tag + ".nii.gz")
-    fslmaths_cmd = "fslmaths " + tmp_iso_file + " -add " + out_mask_file + " " + out_iso_file
-    pipe(fslmaths_cmd)
     
         
 
