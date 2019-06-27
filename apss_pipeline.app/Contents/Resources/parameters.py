@@ -132,5 +132,5 @@ par_prototype_num = 40
 par_prototype_policy = 'sff'
 
 ## Distance measure for dissimilarity computation
-par_prototype_distance = bundles_distances_mam
+par_prototype_distance = 'bundles_distances_mam'
 

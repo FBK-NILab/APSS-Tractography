@@ -422,8 +422,9 @@ def tractome_preprocessing(src_trk_dir, subj_name):
 
             tract = nib.streamlines.load(src_trk_file)
             streamlines = Streamlines(tract.streamlines)
+            distance = eval(par_prototype_distance)
             dissimilarity_matrix = compute_dissimilarity(streamlines, \
-                                                         par_prototype_distance, \
+                                                         distance, \
                                                          par_prototype_policy, \
                                                          par_prototype_num)
             
