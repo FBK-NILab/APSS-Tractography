@@ -169,7 +169,7 @@ def rescaling_isotropic_voxel(src_ecc_dir, out_iso_dir, subj_name):
     iso_mask_tag = "_iso_mask.nii.gz"
     bet_mask_tag = "_bet_mask.nii.gz"
     src_mask_file = os.path.join(src_ecc_dir, subj_name + bet_mask_tag)
-    out_mask_file = os.path.join(out_iso_dir, subj_name + tmp_mask_tag)
+    out_mask_file = os.path.join(out_iso_dir, subj_name + iso_mask_tag)
 
     if os.path.exists(src_mask_file):
         src_img = nib.load(src_mask_file)
