@@ -31,8 +31,9 @@ def furthest_first_traversal(S, k, distance, permutation=True):
     # do an initial permutation of S, just to be sure that objects in
     # S have no special order. Note that this permutation does not
     # affect the original S.
+    S_size = len(S)
     if permutation:
-        idx = np.random.permutation(S.shape[0])
+        idx = np.random.permutation(S_size)
         S = S[idx]       
     else:
         idx = np.arange(S.shape[0], dtype=np.int)
@@ -58,8 +59,9 @@ def subset_furthest_first(S, k, distance, permutation=True, c=2.0):
     pp. 580-584, 17.
     """
     size = max(1, int(np.ceil(c * k * np.log(k))))
+    S_size = len(S)
     if permutation:
-        idx = np.random.permutation(S.shape[0])[:size]       
+        idx = np.random.permutation(S_size)[:size]       
     else:
         idx = range(size)
     # note: no need to add extra permutation here below:
@@ -106,7 +108,7 @@ def compute_dissimilarity(data, distance, prototype_policy, num_prototypes, verb
         if n_jobs > 1:
             tmp = np.linspace(0, data_size, n_jobs).astype(np.int)
         else: # corner case: joblib detected 1 cpu only.
-            tmp = (0, data.shape[0])
+            tmp = (0, data_size)
 
         chunks = zip(tmp[:-1], tmp[1:])
         data_dissimilarity = np.vstack(Parallel(n_jobs=n_jobs)(delayed(distance)(data[start:stop], prototype) for start, stop in chunks))
