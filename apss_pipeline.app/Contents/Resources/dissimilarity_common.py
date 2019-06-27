@@ -73,7 +73,7 @@ def compute_dissimilarity(data, distance, prototype_policy, num_prototypes, verb
     # print "Computing dissimilarity data for the original data:"
     data_original = data
     num_proto = num_prototypes
-    if data.shape[0] > size_limit:
+    if len(data) > size_limit:
         print("")
         print("Dataset too big: subsampling to %s entries only!" % size_limit)
         data = data[np.random.permutation(data.shape[0])[:size_limit], :]
