@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-source ${HOME}/.bash_profile
+#source ${HOME}/.bash_profile
 
 BASEDIR=$(dirname "$(dirname "$0")")
-PYTHONDIR=${BASEDIR}/Resources
+export PATH=${BASEDIR}/Resources/env/bin:${PATH}
 
+PYTHONDIR=${BASEDIR}/Resources
 export PYTHONPATH=${PYTHONDIR}:$PYTHONPATH
 
-${BASEDIR}/Resources/apss_pipeline_gui.py
+"${BASEDIR}/Resources/apss_pipeline_gui.py"

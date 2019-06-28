@@ -177,7 +177,7 @@ def rescaling_isotropic_voxel(src_ecc_dir, out_iso_dir, subj_name):
         src_affine = src_img.affine
         src_mask_size = src_img.get_header().get_zooms()[:3]
         out_iso_size = par_iso_voxel_size
-        data, affine = reslice(src_data, src_affine, src_mask_size, out_iso_size, mode="nearest")
+        data, affine = reslice(src_data, src_affine, src_mask_size, out_iso_size, order=0, mode="nearest")
         data_img = nib.Nifti1Image(data, affine)
         nib.save(data_img, out_mask_file)
         fix_wm_mask(out_mask_file, out_mask_file)
