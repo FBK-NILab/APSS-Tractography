@@ -6,7 +6,10 @@ from tkinter import INSERT, BOTTOM, TOP, W, StringVar, IntVar
 from tkinter.filedialog import askdirectory
 from tkinter.messagebox import showinfo
 from tkinter.scrolledtext import ScrolledText
+from threading import Thread
 from pipeline import run_pipeline
+from pipenode import kill_proc
+
 
 max_step = 16
 do_step = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -66,14 +69,19 @@ win.title("APSS Tractography Pipeline")
 button_txt = StringVar()
 button_lab = 'START'
 
+t = Thread(target=run_pipeline, args=(main_data_directory, do_step))
+        
 def run():
     if button_txt.get() == 'QUIT':
+        kill_proc()
+        #t.join()
         sys.exit()
     else:
         button_txt.set("QUIT")
         win.update()
-        run_pipeline(main_data_directory, do_step)
-        time.sleep(30)
+        t.start()
+        #run_pipeline(main_data_directory, do_step)
+        #time.sleep(30)
 
 def redirector(inputStr):
     textbox.insert(INSERT, inputStr)

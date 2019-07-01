@@ -15,6 +15,7 @@ import pickle
 import numpy as np
 import nibabel as nib
 from subprocess import Popen, PIPE
+import signal
 import dipy.reconst.dti as dti
 from dipy.reconst.csdeconv import ConstrainedSphericalDeconvModel, auto_response
 from dipy.align.reslice import reslice
@@ -32,6 +33,7 @@ from dipy.tracking.streamline import transform_streamlines
 from dipy.tracking.utils import length
 from compute_dti_det_tracking import compute_dti_det_tracking
 
+proc_id = False
 
 def load_nifti(fname, verbose=False):
     img = nib.load(fname)
@@ -53,16 +55,24 @@ def save_nifti(fname, data, affine, verbose=False):
         print(fname)
     nib.save(nib.Nifti1Image(data, affine), fname)
 
+def kill_proc():
+    global proc_id
+    if proc_id:
+        os.killpg(os.getpgid(proc_id.pid), signal.SIGTERM)
+
 def pipe(cmd, print_sto=True, print_ste=True):
     """Open a pipe to a subprocess where execute an external command.
     """
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    sto = p.stdout.readlines()
-    ste = p.stderr.readlines()
+    global proc_id
+    proc_id = Popen(cmd, shell=True, \
+                    stdout=PIPE, stderr=PIPE, preexec_fn=os.setsid)
+    sto = proc_id.stdout.readlines()
+    ste = proc_id.stderr.readlines()
     if print_sto :
         print(sto)
     if print_ste :
         print(ste)
+    proc_id = False
 
 def eddy_correct(in_nii, out_nii, ref=0):
     cmd = 'eddy_correct ' + in_nii + ' ' + out_nii + ' ' + str(ref)
