@@ -32,6 +32,10 @@ from nibabel.orientations import aff2axcodes
 from dipy.tracking.streamline import transform_streamlines
 from dipy.tracking.utils import length
 from compute_dti_det_tracking import compute_dti_det_tracking
+from tractome_preprocessing import compute_buffers
+from tractome_preprocessing import mbkm_wrapper
+from tractome_preprocessing import tractome_preprocessing
+from sklearn.neighbors import KDTree
 
 proc_id = False
 
@@ -414,34 +418,32 @@ def compute_csd_prob_tracking(src_dmri_dir, out_trk_dir, subj_name):
     nib.streamlines.save(tractogram, trk, header=header)
 
 
-def tractome_preprocessing(src_trk_dir, subj_name):
+def tractome_preprocessing_dti_det(src_trk_dir, subj_name):
 
-    trk1 = subj_name + "_dti_det.trk"
-    trk2 = subj_name + "_csd_det.trk"
-    trk3 = subj_name + "_csd_prob.trk"
-    
-    for trk in (trk1, trk2, trk3):
-        print("Preprocessing of %s..." % trk)
-        src_trk_file = os.path.join(src_trk_dir, trk)
-        if os.path.exists(src_trk_file):
-            spa_basename = os.path.splitext(os.path.basename(trk))[0] + '.spa'
-            out_spa_dir = os.path.join(src_trk_dir, '.temp')
-            if not os.path.exists(out_spa_dir):
-                os.makedirs(out_spa_dir)
-            out_spa_file = os.path.join(out_spa_dir, spa_basename)
+    src_trk_file = os.path.join(src_trk_dir, subj_name + "_dti_det.trk")
+    if os.path.exists(src_trk_file):
+        tractome_preprocessing(src_trk_file)
+    else:
+        print("File not found: ", src_trk_file)
 
-            tract = nib.streamlines.load(src_trk_file)
-            distance = eval(par_prototype_distance)
-            dissimilarity_matrix = compute_dissimilarity(tract.streamlines, \
-                                                         distance, \
-                                                         par_prototype_policy, \
-                                                         par_prototype_num)
-            
-            info = {'dismatrix':dissimilarity_matrix, \
-                    'nprot':par_prototype_num}
-            print("...saving\n")
-            pickle.dump(info, open(out_spa_file,'wb+'), \
-                        protocol=pickle.HIGHEST_PROTOCOL)
+
+def tractome_preprocessing_csd_det(src_trk_dir, subj_name):
+
+    src_trk_file = os.path.join(src_trk_dir, subj_name + "_csd_det.trk")
+    if os.path.exists(src_trk_file):
+        tractome_preprocessing(src_trk_file)
+    else:
+        print("File not found: ", src_trk_file)
+
+
+def tractome_preprocessing_csd_prob(src_trk_dir, subj_name):
+
+    src_trk_file = os.path.join(src_trk_dir, subj_name + "_csd_prob.trk")
+    if os.path.exists(src_trk_file):
+        tractome_preprocessing(src_trk_file)
+    else:
+        print("File not found: ", src_trk_file)
+
 
 
 def roi_registration(src_ref_dir, out_roi_dir, subj_name):

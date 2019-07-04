@@ -11,8 +11,8 @@ from pipeline import run_pipeline
 from pipenode import kill_proc
 
 
-max_step = 16
-do_step = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+max_step = 17
+do_step = [1] * (max_step + 1)
 main_data_directory = ''
 
 step_var = []
@@ -30,8 +30,10 @@ step_label = [ \
                "11. Constraint Spherical Deconvolution", \
                "12. Deterministic tracking with CSD", \
                "13. Probabilistic tracking with CSD", \
-               "14. Tractome preprocessing", \
-               "15. Registration of ROI from atlas"]
+               "14. Tractome preprocessing DTI DET", \
+               "15. Tractome preprocessing CSD DET", \
+               "16. Tractome preprocessing CSD PROB", \
+               "17. Registration of ROI from atlas"]
 
 win=Tk()
 win.title("APSS Tractography Pipeline")
@@ -50,15 +52,33 @@ def cb_sel(v):
         v.set(1)
 
 def cb_ok():
-    for i in range(15):
+    for i in range(max_step):
         do_step[i+1] = step_var[i].get()
     win.destroy()
 
-for i in range(15):
+step_var = []
+step_cb = []
+
+def toggle_cmd(v):
+    if v.get() == 1:
+        for i in range(max_step):
+            step_cb[i].select()
+    else:
+        for i in range(max_step):
+            step_cb[i].deselect()
+
+
+for i in range(max_step):
     step_var.append(IntVar())
-    step_var[i].set(0)
-    cb = Checkbutton(win, text=step_label[i], variable=step_var[i], command=cb_sel(step_var[i]))
+    step_var[i].set(1)
+    cb = Checkbutton(win, text=step_label[i], variable=step_var[i])
     cb.pack(side=TOP, anchor=W)
+    step_cb.append(cb)
+toggle_var = IntVar()
+toggle_var.set(1)
+toggle_cb = Checkbutton(win, text='ALL', variable=toggle_var, \
+                         command=lambda: toggle_cmd(toggle_var))
+toggle_cb.pack(side=TOP, anchor=W)
 cb_button = Button(win, text="OK", command=cb_ok)
 cb_button.pack(side=TOP)
 win.update()
@@ -95,7 +115,7 @@ textbox.pack()
 subject_id = os.path.basename(main_data_directory)
 textbox.insert(INSERT, "Selected patient: %s\n" % subject_id)
 textbox.insert(INSERT, "Selected steps:\n")
-for i in range(15):
+for i in range(max_step):
     step_num = "   %d. " % (1 + i)
     textbox.insert(INSERT, step_num)
     if do_step[i+1]:
