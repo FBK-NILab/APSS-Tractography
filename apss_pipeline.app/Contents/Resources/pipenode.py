@@ -122,10 +122,25 @@ def dicom_to_nifti(src_dir, out_dir, subj_name, tag, opt=par_dcm2nii_options):
 def brain_extraction(src_bet, out_dir, subj_name, tag):
 
     try:
-        out_bet_file = os.path.join(out_dir, subj_name + par_bet_tag + ".nii.gz")
+        src_app_dir = os.path.dirname(os.path.realpath(__file__))
+        src_mni_dir = os.path.join(src_app_dir, 'data')
+        src_mni_T1 = os.path.join(src_mni_dir, "MNI152_T1_1mm.nii.gz")
+        src_mni_mask = os.path.join(src_mni_dir, "MNI152_T1_1mm_brain_mask.nii.gz")
         bet_file = os.path.join(src_bet, subj_name + '_' + tag + '.nii.gz')
         src_bet_file = os.path.join(src_bet, bet_file)
-        cmd = 'bet ' + src_bet_file + ' ' + out_bet_file + par_bet_options
+        out_mni_aff = os.path.join(out_dir, "aff2mni.mat")
+        out_bet_file = os.path.join(out_dir, subj_name + par_bet_tag + ".nii.gz")
+        out_bet_mask = os.path.join(out_dir, subj_name + par_bet_tag + "_mask.nii.gz")
+
+        cmd = "flirt -in %s -ref %s -omat %s" % \
+              (src_mni_T1, src_bet_file,  out_mni_aff)
+        pipe(cmd, print_sto=False, print_ste=False)
+        cmd = "flirt -interp nearestneighbour -in %s -ref %s -applyxfm -init %s -out %s" % \
+              (src_mni_mask, src_bet_file,  out_mni_aff, out_bet_mask)
+        pipe(cmd, print_sto=False, print_ste=False)
+
+        cmd = "fslmaths %s -mas %s %s" % \
+              (src_bet_file, out_bet_mask, out_bet_file)
         pipe(cmd, print_sto=False, print_ste=False)
     except:
         print("FAIL: bet - File: %s" % src_bet_file)
@@ -232,19 +247,22 @@ def flirt_registration(src_flirt_dir, ref_flirt_dir, out_flirt_dir, aff_flirt_di
 
 def atlas_registration(ref_flirt_dir, out_flirt_dir, aff_flirt_dir, subj_name):
     
-    try:
-        fsl_dir = os.environ['FSLDIR']
-        fsl_atlas_file = [os.path.join(dirpath, f)
-            for dirpath, dirnames, files in os.walk(fsl_dir, followlinks=True)
-            for f in files if f.endswith(par_atlas_file)][0]
-    except IndexError:
-        print("FAIL: atlas file not found - File: %s" % par_atlas_file)
-        sys.exit()
+    # try:
+    #     fsl_dir = os.environ['FSLDIR']
+    #     fsl_atlas_file = [os.path.join(dirpath, f)
+    #         for dirpath, dirnames, files in os.walk(fsl_dir, followlinks=True)
+    #         for f in files if f.endswith(par_atlas_file)][0]
+    # except IndexError:
+    #     print("FAIL: atlas file not found - File: %s" % par_atlas_file)
+    #     sys.exit()
 
+    src_app_dir = os.path.dirname(os.path.realpath(__file__))
+    src_atlas_dir = os.path.join(src_app_dir, 'data')
+    src_atlas_file = os.path.join(src_atlas_dir, par_atlas_file)
     ref_flirt_file = os.path.join(ref_flirt_dir, subj_name + par_iso_tag + ".nii.gz")
     out_flirt_file = os.path.join(out_flirt_dir, subj_name + par_atlas_tag)
     aff_flirt_file = os.path.join(aff_flirt_dir, subj_name + par_aff_tag)
-    pipe('flirt -in ' + fsl_atlas_file + ' -ref '+ ref_flirt_file +' -out '+ out_flirt_file +' -omat '+ aff_flirt_file + ' ' + par_flirt_opt)
+    pipe('flirt -in ' + src_atlas_file + ' -ref '+ ref_flirt_file +' -out '+ out_flirt_file +' -omat '+ aff_flirt_file + ' ' + par_flirt_opt)
 
 
 def fix_wm_mask(in_nii, out_nii):
@@ -450,6 +468,8 @@ def roi_registration(src_ref_dir, out_roi_dir, subj_name):
     
     # Compute the affine from atlas
     # (reference image: the isotropic dwi file)
+    src_app_dir = os.path.dirname(os.path.realpath(__file__))
+    src_atlas_dir = os.path.join(src_app_dir, 'data')
     src_atlas = os.path.join(par_atlas_dir, par_roi_atlas)
     if not os.path.exists(src_atlas):
         print('Atlas not found: %s' % src_atlas)
@@ -461,11 +481,14 @@ def roi_registration(src_ref_dir, out_roi_dir, subj_name):
     pipe(cmd, print_sto=False, print_ste=False)
 
     # Apply the affine to all ROIs
+    src_app_dir = os.path.dirname(os.path.realpath(__file__))
+    par_roi_dir = os.path.join(src_app_dir, 'data/JHU')
+
     if not os.path.exists(par_roi_dir):
         print('Pathname for ROI not found: %s' % par_roi_dir)
         return
 
-    all_roi = [f for f in os.listdir(par_roi_dir) if f.endswith('.nii')]
+    all_roi = [f for f in os.listdir(par_roi_dir) if f.endswith('.nii.gz')]
     for roi in all_roi:
         src_roi = os.path.join(par_roi_dir, roi)
         out_roi = os.path.join(out_roi_dir, roi)
