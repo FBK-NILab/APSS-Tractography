@@ -12,6 +12,7 @@ import os
 import sys
 import glob
 import pickle
+import time
 import numpy as np
 import nibabel as nib
 from subprocess import Popen, PIPE
@@ -32,6 +33,8 @@ from nibabel.orientations import aff2axcodes
 from dipy.tracking.streamline import transform_streamlines
 from dipy.tracking.utils import length
 from compute_dti_det_tracking import compute_dti_det_tracking
+from compute_csd_det_tracking import compute_csd_det_tractogram
+from compute_csd_prob_tracking import compute_csd_prob_tractogram
 from tractome_preprocessing import compute_buffers
 from tractome_preprocessing import mbkm_wrapper
 from tractome_preprocessing import tractome_preprocessing
@@ -370,36 +373,39 @@ def compute_csd(src_dmri_dir, out_dmri_dir, subj_name):
 def compute_csd_det_tracking(src_dmri_dir, out_trk_dir, subj_name):
 
     seed =  os.path.join(src_dmri_dir, subj_name + "_seed.nii.gz")
-    md = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
     fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
     pam =  os.path.join(src_dmri_dir, subj_name + "_csd.pam5")
     trk = os.path.join(out_trk_dir, subj_name + "_csd_det.trk")
+    
+    print(time.ctime())
+    compute_csd_det_tractogram(pam, fa, seed, trk)
+    print(time.ctime())
 
-    cmd = 'dipy_track_local --force %s %s %s --tracking_method det --seed_density 2 --out_tractogram %s' % \
-          (pam, seed, seed, trk)
-    pipe(cmd, print_sto=False, print_ste=False)
+    # cmd = 'dipy_track_local --force %s %s %s --tracking_method det --seed_density 2 --out_tractogram %s' % \
+    #       (pam, fa, seed, trk)
+    # pipe(cmd, print_sto=False, print_ste=False)
 
-    img = nib.load(fa)
-    header = nib.streamlines.trk.TrkFile.create_empty_header()
-    header['voxel_to_rasmm'] = img.affine.copy()
-    header['voxel_sizes'] = img.header.get_zooms()[:3]
-    header['dimensions'] = img.shape[:3]
-    header['voxel_order'] = "".join(aff2axcodes(img.affine))
+    # img = nib.load(fa)
+    # header = nib.streamlines.trk.TrkFile.create_empty_header()
+    # header['voxel_to_rasmm'] = img.affine.copy()
+    # header['voxel_sizes'] = img.header.get_zooms()[:3]
+    # header['dimensions'] = img.shape[:3]
+    # header['voxel_order'] = "".join(aff2axcodes(img.affine))
 
-    tract = nib.streamlines.load(trk)
-    min_length = 20.
-    max_length = 250.
-    streamlines_clean = []
-    for s_src in tract.streamlines:
-        s_length = list(length([s_src]))[0]
-        if (s_length > min_length) and (s_length < max_length):
-            streamlines_clean.append(s_src)
+    # tract = nib.streamlines.load(trk)
+    # min_length = 20.
+    # max_length = 250.
+    # streamlines_clean = []
+    # for s_src in tract.streamlines:
+    #     s_length = list(length([s_src]))[0]
+    #     if (s_length > min_length) and (s_length < max_length):
+    #         streamlines_clean.append(s_src)
 
-    fix_streamlines = transform_streamlines(streamlines_clean, \
-                                            np.linalg.inv(img.affine))
-    tractogram = nib.streamlines.Tractogram(fix_streamlines, \
-                                            affine_to_rasmm=img.affine)
-    nib.streamlines.save(tractogram, trk, header=header)
+    # fix_streamlines = transform_streamlines(streamlines_clean, \
+    #                                         np.linalg.inv(img.affine))
+    # tractogram = nib.streamlines.Tractogram(fix_streamlines, \
+    #                                         affine_to_rasmm=img.affine)
+    # nib.streamlines.save(tractogram, trk, header=header)
 
 
 def compute_csd_prob_tracking(src_dmri_dir, out_trk_dir, subj_name):
@@ -408,32 +414,10 @@ def compute_csd_prob_tracking(src_dmri_dir, out_trk_dir, subj_name):
     fa = os.path.join(src_dmri_dir, subj_name + par_fa_tag)
     pam =  os.path.join(src_dmri_dir, subj_name + "_csd.pam5")
     trk = os.path.join(out_trk_dir, subj_name + "_csd_prob.trk")
-
-    cmd = 'dipy_track_local --force %s %s %s --tracking_method prob --seed_density 2 --out_tractogram %s' % \
-          (pam, fa, seed, trk)
-    pipe(cmd, print_sto=False, print_ste=False)
-
-    img = nib.load(fa)
-    header = nib.streamlines.trk.TrkFile.create_empty_header()
-    header['voxel_to_rasmm'] = img.affine.copy()
-    header['voxel_sizes'] = img.header.get_zooms()[:3]
-    header['dimensions'] = img.shape[:3]
-    header['voxel_order'] = "".join(aff2axcodes(img.affine))
-
-    tract = nib.streamlines.load(trk)
-    min_length = 20.
-    max_length = 250.
-    streamlines_clean = []
-    for s_src in tract.streamlines:
-        s_length = list(length([s_src]))[0]
-        if (s_length > min_length) and (s_length < max_length):
-            streamlines_clean.append(s_src)
-
-    fix_streamlines = transform_streamlines(streamlines_clean, \
-                                            np.linalg.inv(img.affine))
-    tractogram = nib.streamlines.Tractogram(fix_streamlines, \
-                                            affine_to_rasmm=img.affine)
-    nib.streamlines.save(tractogram, trk, header=header)
+    
+    print(time.ctime())
+    compute_csd_prob_tractogram(pam, fa, seed, trk)
+    print(time.ctime())
 
 
 def tractome_preprocessing_dti_det(src_trk_dir, subj_name):
