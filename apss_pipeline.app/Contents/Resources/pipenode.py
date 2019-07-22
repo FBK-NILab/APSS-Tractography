@@ -71,7 +71,7 @@ def pipe(cmd, print_sto=True, print_ste=True):
     """Open a pipe to a subprocess where execute an external command.
     """
     global proc_id
-    proc_id = Popen(cmd, shell=True, \
+    proc_id = Popen(cmd, shell=True, executable='/bin/bash', \
                     stdout=PIPE, stderr=PIPE, preexec_fn=os.setsid)
     sto = proc_id.stdout.readlines()
     ste = proc_id.stderr.readlines()
